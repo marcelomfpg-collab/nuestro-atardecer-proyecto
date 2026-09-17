@@ -82,21 +82,71 @@
     92%{ opacity:1; }
     to{ transform:translateX(-220px); opacity:0; }
   }
-  .night-drive .dash-glow{
-    position:absolute; left:0; right:0; bottom:0; height:26vh;
-    background: radial-gradient(65% 100% at 50% 100%, rgba(255,85,60,.32), transparent 70%);
-    animation: dashPulse 4.5s ease-in-out infinite;
-  }
-  @keyframes dashPulse{
-    0%,100%{ opacity:.65; }
-    50%{ opacity:1; }
-  }
   .night-drive .vignette{
     position:absolute; inset:0;
     background: radial-gradient(120% 75% at 50% 105%, transparent 35%, rgba(0,0,0,.6) 100%);
   }
+
+  /* ---- tablero del carro ---- */
+  .night-drive .dash{
+    position:absolute; left:-8%; right:-8%; bottom:-6vh;
+    height:38vh;
+    background: linear-gradient(180deg, transparent 0%, rgba(8,7,10,.88) 22%, #08070a 100%);
+    border-radius:50% 50% 0 0 / 16% 16% 0 0;
+    animation: dashPulse 4.5s ease-in-out infinite;
+  }
+  @keyframes dashPulse{
+    0%,100%{ opacity:.92; }
+    50%{ opacity:1; }
+  }
+  .night-drive .wheel{
+    position:absolute; left:-18vw; bottom:-26vw;
+    width:54vw; height:54vw;
+    border-radius:50%;
+    border:16px solid #14121a;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.06), 0 0 30px rgba(0,0,0,.6);
+  }
+  .night-drive .console{
+    position:absolute; left:58%; bottom:7vh;
+    width:min(52%, 300px);
+    transform:translateX(-40%);
+  }
+  .night-drive .screen{
+    background:#100e14;
+    border:1px solid rgba(255,90,60,.35);
+    border-radius:10px;
+    padding:9px 14px;
+    box-shadow: 0 0 22px rgba(255,70,50,.22), inset 0 0 14px rgba(255,70,50,.08);
+  }
+  .night-drive .screen-row{ font-family:"Work Sans", sans-serif; }
+  .night-drive .now-playing{
+    display:flex; align-items:center; gap:6px;
+    text-transform:uppercase; font-size:.58rem; letter-spacing:.08em;
+    color:#ff8f78; opacity:.85; margin-bottom:2px;
+  }
+  .night-drive .title{ font-family:"Fraunces",serif; font-size:1rem; color:#fff0ea; }
+  .night-drive .artist{ font-size:.75rem; color:#ffb199; margin-top:1px; }
+  .night-drive .screen-bar{ margin-top:8px; height:3px; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden; }
+  .night-drive .screen-bar span{ display:block; height:100%; width:10%; background:#ff5a3c; animation:barMove 6s linear infinite; }
+  @keyframes barMove{ 0%{ width:6%; } 100%{ width:94%; } }
+  .night-drive .eq{ display:inline-flex; align-items:flex-end; gap:2px; height:8px; }
+  .night-drive .eq span{ width:2px; background:#ff8f78; animation:eqBounce .8s ease-in-out infinite; }
+  .night-drive .eq span:nth-child(1){ animation-delay:0s; }
+  .night-drive .eq span:nth-child(2){ animation-delay:.2s; }
+  .night-drive .eq span:nth-child(3){ animation-delay:.4s; }
+  @keyframes eqBounce{ 0%,100%{ height:3px; } 50%{ height:8px; } }
+  .night-drive .buttons{ display:flex; gap:8px; margin-top:10px; justify-content:center; }
+  .night-drive .buttons span{
+    width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle, #ff6a4a, #3a0e08);
+    box-shadow:0 0 6px rgba(255,80,50,.7);
+  }
+  @media (max-width:480px){
+    .night-drive .console{ left:60%; bottom:6.5vh; }
+  }
   @media (prefers-reduced-motion: reduce){
-    .night-drive .road-line, .night-drive .streak{ animation:none; opacity:0; }
+    .night-drive .road-line, .night-drive .streak, .night-drive .dash,
+    .night-drive .screen-bar span, .night-drive .eq span{ animation:none; }
   }
   .night-drive .streak:nth-of-type(1){ top:18%; width:120px; animation-duration:2.6s; animation-delay:0s; }
   .night-drive .streak:nth-of-type(2){ top:32%; width:200px; animation-duration:1.8s; animation-delay:.6s; }
@@ -479,8 +529,22 @@
   <div class="streak"></div>
   <div class="streak rev"></div>
   <div class="streak"></div>
-  <div class="dash-glow"></div>
   <div class="vignette"></div>
+  <div class="dash">
+    <div class="wheel"></div>
+    <div class="console">
+      <div class="screen">
+        <div class="screen-row now-playing">
+          <span class="eq"><span></span><span></span><span></span></span>
+          reproduciendo
+        </div>
+        <div class="screen-row title">Dos Extraños</div>
+        <div class="screen-row artist">Danny Ocean</div>
+        <div class="screen-bar"><span></span></div>
+      </div>
+      <div class="buttons"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+  </div>
 </div>
 
 <div class="hero">
