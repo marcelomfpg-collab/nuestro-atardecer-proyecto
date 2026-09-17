@@ -634,14 +634,15 @@ document.querySelectorAll(".extra-card").forEach((card, i) => {
 });
 
 function checkReveal() {
-  document.querySelectorAll(".reveal:not(.is-visible)").forEach(el => {
+  const pending = document.querySelectorAll(".reveal:not(.is-visible)");
+  pending.forEach(el => {
     const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.92) {
-      el.classList.add("is-visible");
-    }
+    if (rect.top < window.innerHeight * 0.92) el.classList.add("is-visible");
   });
+  return document.querySelectorAll(".reveal:not(.is-visible)").length === 0;
 }
-checkReveal();
-window.addEventListener("scroll", checkReveal, { passive: true });
-window.addEventListener("resize", checkReveal);
+(function revealLoop() {
+  if (checkReveal()) return;
+  requestAnimationFrame(revealLoop);
+})();
 </script>
