@@ -36,6 +36,20 @@
     padding-inline:20px;
   }
 
+  /* ---------- SCROLL REVEAL ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(26px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.is-visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+
   /* ---------- HERO ---------- */
   .hero{
     position:relative;
@@ -64,6 +78,11 @@
     background: radial-gradient(circle at 35% 30%, #ffe3ad, var(--sun) 45%, var(--coral) 100%);
     box-shadow: 0 0 60px 10px rgba(255,154,90,.45);
     position:relative;
+    animation: pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ box-shadow: 0 0 60px 10px rgba(255,154,90,.45); }
+    50%{ box-shadow: 0 0 80px 18px rgba(255,154,90,.6); }
   }
   .sun::after{
     content:"";
@@ -146,22 +165,42 @@
   /* ---------- SECTION LABEL ---------- */
   .section-head{
     text-align:center;
-    margin: 10px 0 34px;
+    margin: 10px 0 18px;
   }
   .section-head .eyebrow{ margin-bottom:2px; }
   .section-head h2{
     font-size:clamp(1.5rem,5vw,2rem);
     color:#fff6ea;
   }
-
-  /* ---------- SONG LIST ---------- */
-  .songs{
-    display:flex;
-    flex-direction:column;
-    gap:26px;
-    margin-bottom:56px;
+  .carousel-hint{
+    text-align:center;
+    font-size:.8rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 20px;
   }
+
+  /* ---------- SONG CAROUSEL ---------- */
+  .carousel-wrap{
+    position:relative;
+    margin-bottom:22px;
+  }
+  .carousel-track{
+    display:flex;
+    gap:20px;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .carousel-track::-webkit-scrollbar{ display:none; }
+
   .track{
+    flex:0 0 100%;
+    scroll-snap-align:center;
     background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
     border:1px solid var(--line);
     border-radius:20px;
@@ -201,6 +240,8 @@
     font-size:1.3rem;
     color:#f3d9c4;
     line-height:1.4;
+    max-height:5.6em;
+    overflow-y:auto;
   }
 
   /* empty / coming soon state */
@@ -220,6 +261,73 @@
   .track.empty .note-icon{ font-size:1.6rem; }
   .track.empty .track-title{ color:#e9c8ba; }
 
+  /* locked state */
+  .track.locked{
+    border-style:solid;
+    border-color:rgba(255,214,170,.25);
+    background:linear-gradient(160deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
+  }
+  .track.locked .track-title{
+    letter-spacing:.3em;
+    color:#e9c8ba;
+  }
+  .track.locked .track-media{
+    background:rgba(0,0,0,.35);
+    border:1px dashed rgba(255,214,170,.3);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px;
+    color:var(--ink-soft);
+    aspect-ratio:16/9;
+    text-align:center;
+    padding:0 20px;
+  }
+  .track.locked .lock-icon{ font-size:2rem; }
+  .track.locked .lock-progress{ font-size:.8rem; opacity:.75; }
+
+  /* prev/next arrows */
+  .carousel-arrow{
+    position:absolute;
+    top:38%;
+    transform:translateY(-50%);
+    width:38px; height:38px;
+    border-radius:50%;
+    background:rgba(20,10,25,.55);
+    border:1px solid var(--line);
+    color:#fff6ea;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size:1.15rem;
+    z-index:2;
+    backdrop-filter: blur(4px);
+    transition: background .2s, transform .2s;
+  }
+  .carousel-arrow:hover{ background:rgba(20,10,25,.8); }
+  .carousel-arrow.prev{ left:-4px; }
+  .carousel-arrow.next{ right:-4px; }
+  @media (max-width:640px){
+    .carousel-arrow{ display:none; }
+  }
+
+  /* dots */
+  .carousel-dots{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:56px;
+  }
+  .carousel-dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background:rgba(255,214,170,.3);
+    border:none; padding:0;
+    cursor:pointer;
+    transition: transform .2s, background .2s;
+  }
+  .carousel-dot.active{
+    background:var(--gold);
+    transform:scale(1.35);
+  }
+
   /* ---------- EXTRAS ---------- */
   .extras{
     display:grid;
@@ -236,7 +344,9 @@
     padding:22px 16px;
     text-align:center;
     color:var(--ink-soft);
+    transition: transform .25s ease, border-color .25s ease;
   }
+  .extra-card:hover{ transform:translateY(-4px); border-color:rgba(255,214,170,.6); }
   .extra-card .glyph{ font-size:1.8rem; display:block; margin-bottom:8px; }
   .extra-card h3{ font-size:1.05rem; color:#f3d9c4; margin-bottom:4px; }
   .extra-card p{ font-size:.85rem; margin:0; }
@@ -285,19 +395,25 @@
 </div>
 
 <div class="wrap">
-  <div class="letter">
+  <div class="letter reveal">
     <p id="page-message">Cada canción de esta lista guarda un pedacito de nosotros. Algunas las escribí pensando en ti, otras me recuerdan momentos que quiero conservar siempre. Espero que al escucharlas sientas todo lo que no siempre alcanzo a decir con palabras.</p>
     <span class="sign">— Marcelo</span>
   </div>
 
-  <div class="section-head">
+  <div class="section-head reveal">
     <div class="eyebrow script">la playlist</div>
     <h2>Nuestras canciones</h2>
   </div>
+  <p class="carousel-hint reveal">desliza o usa las flechas →</p>
 
-  <div class="songs" id="songs-container"></div>
+  <div class="carousel-wrap reveal">
+    <button class="carousel-arrow prev" id="songs-prev" aria-label="Canción anterior">‹</button>
+    <div class="carousel-track" id="songs-container"></div>
+    <button class="carousel-arrow next" id="songs-next" aria-label="Canción siguiente">›</button>
+  </div>
+  <div class="carousel-dots" id="songs-dots"></div>
 
-  <div class="section-head">
+  <div class="section-head reveal">
     <div class="eyebrow script">un poco más</div>
     <h2>Extras</h2>
   </div>
@@ -322,13 +438,19 @@
    - pageTitle   → el título grande de arriba (por ejemplo, su nombre)
    - subtitle    → la frase chiquita debajo del título
    - message     → la "carta" que aparece en la tarjeta color crema
-   - songs       → la lista de canciones. Cada canción tiene:
+   - songs       → la lista de canciones (se muestran como carrusel
+                    deslizable). Cada canción tiene:
                      title   → nombre de la canción
                      caption → el texto/nota debajo del video
                      video   → el archivo de video (déjalo vacío "" si
                                todavía no tienes esa canción lista;
                                se mostrará como "muy pronto")
                      poster  → imagen que se ve antes de dar play
+                     locked  → true solo en la última canción: se
+                               mantiene bloqueada ("???") hasta que
+                               TODAS las demás tengan su video puesto.
+                               En cuanto completes las otras 6, esta
+                               se desbloquea sola.
 
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
@@ -360,7 +482,9 @@ const CONFIG = {
       caption: "Cuando la escribí quería transmitir el cariño incondicional que te tengo, no importa las sombras que podamos tener, siempre estará contigo.",
       video: "media/ese-atardecer.mp4",
       poster: "media/ese-atardecer-poster.jpg"
-    }
+    },
+    { title: "", caption: "", video: "", poster: "" },
+    { title: "", caption: "", video: "", poster: "", locked: true }
   ],
 
   extras: [
@@ -377,11 +501,34 @@ document.querySelector(".letter .sign").textContent = CONFIG.sign;
 document.title = CONFIG.pageTitle;
 
 const songsEl = document.getElementById("songs-container");
+const dotsEl = document.getElementById("songs-dots");
+const trackEls = [];
+
+const lockedIndex = CONFIG.songs.findIndex(s => s.locked);
+const prereqMet = lockedIndex === -1
+  ? true
+  : CONFIG.songs.every((s, idx) => idx === lockedIndex || !!s.video);
+
 CONFIG.songs.forEach((song, i) => {
   const num = String(i + 1).padStart(2, "0");
   const track = document.createElement("div");
 
-  if (song.video) {
+  if (song.locked && !prereqMet) {
+    const doneCount = CONFIG.songs.filter((s, idx) => idx !== lockedIndex && s.video).length;
+    const totalOthers = CONFIG.songs.length - 1;
+    track.className = "track locked";
+    track.innerHTML = `
+      <div class="track-head">
+        <div class="track-num">${num}</div>
+        <div class="track-title">???</div>
+      </div>
+      <div class="track-media">
+        <span class="lock-icon">🔒</span>
+        <span>se desbloquea al completar las demás canciones</span>
+        <span class="lock-progress">${doneCount}/${totalOthers} completas</span>
+      </div>
+    `;
+  } else if (song.video) {
     track.className = "track";
     track.innerHTML = `
       <div class="track-head">
@@ -409,6 +556,50 @@ CONFIG.songs.forEach((song, i) => {
     `;
   }
   songsEl.appendChild(track);
+  trackEls.push(track);
+
+  const dot = document.createElement("button");
+  dot.className = "carousel-dot";
+  dot.setAttribute("aria-label", `Ir a canción ${num}`);
+  dot.addEventListener("click", () => goTo(i));
+  dotsEl.appendChild(dot);
+});
+
+function goTo(idx) {
+  idx = Math.max(0, Math.min(trackEls.length - 1, idx));
+  trackEls[idx].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+}
+
+let currentIndex = 0;
+function updateDots() {
+  [...dotsEl.children].forEach((dot, idx) => dot.classList.toggle("active", idx === currentIndex));
+}
+updateDots();
+
+const songObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+      currentIndex = trackEls.indexOf(entry.target);
+      updateDots();
+    }
+  });
+}, { root: songsEl, threshold: [0.6] });
+trackEls.forEach(t => songObserver.observe(t));
+
+document.getElementById("songs-prev").addEventListener("click", () => goTo(currentIndex - 1));
+document.getElementById("songs-next").addEventListener("click", () => goTo(currentIndex + 1));
+
+/* avanza sola a la siguiente canción cuando termina el video actual */
+songsEl.querySelectorAll("video").forEach((video, playedIdx) => {
+  video.addEventListener("ended", () => {
+    const idx = trackEls.findIndex(t => t.contains(video));
+    const nextIdx = idx + 1;
+    if (nextIdx < trackEls.length) {
+      goTo(nextIdx);
+      const nextVideo = trackEls[nextIdx].querySelector("video");
+      if (nextVideo) nextVideo.play().catch(() => {});
+    }
+  });
 });
 
 const extrasEl = document.getElementById("extras-container");
@@ -434,5 +625,23 @@ CONFIG.extras.forEach(extra => {
     `;
   }
   extrasEl.appendChild(card);
+});
+
+/* ------------------------- animaciones al hacer scroll ------------------------- */
+const revealEls = document.querySelectorAll(".reveal");
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("is-visible");
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+document.querySelectorAll(".extra-card").forEach((card, i) => {
+  card.classList.add("reveal");
+  card.style.transitionDelay = `${i * 0.1}s`;
+  revealObserver.observe(card);
 });
 </script>
