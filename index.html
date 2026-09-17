@@ -373,6 +373,26 @@
   .extra-card.has-video .extra-media video{ width:100%; height:100%; object-fit:cover; }
   .extra-card.has-video p{ font-family:"Caveat", cursive; font-size:1.15rem; color:#f3d9c4; }
 
+  .secret-toggle{
+    display:block;
+    margin-top:12px;
+    background:none;
+    border:1px dashed rgba(255,214,170,.35);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:.72rem;
+    padding:6px 10px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .secret-toggle:hover{ border-color:var(--gold); color:var(--gold); }
+  .secret-content{ margin-top:10px; }
+  .secret-content .extra-media{
+    border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9;
+  }
+  .secret-content .extra-media video{ width:100%; height:100%; object-fit:cover; }
+  .secret-empty{ font-size:.8rem; color:var(--ink-soft); margin:0; }
+
   /* ---------- FOOTER ---------- */
   footer{
     text-align:center;
@@ -402,7 +422,7 @@
 
   <div class="section-head reveal">
     <div class="eyebrow script">la playlist</div>
-    <h2>Nuestras canciones</h2>
+    <h2>Playlist normal</h2>
   </div>
   <p class="carousel-hint reveal">desliza o usa las flechas →</p>
 
@@ -454,6 +474,13 @@
 
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
+
+   - extras      → las tarjetas de "Extras". La de "Interlude" tiene un
+                    campo extra "secretVideo": si lo dejas vacío "" se
+                    ve un botoncito discreto "¿hay algo más?" que al
+                    abrirse dice "todavía no hay nada aquí"; en cuanto
+                    le pongas un video ahí, ese botón (que solo existe
+                    dentro de Interlude) lo revela.
    ===================================================================== */
 
 const CONFIG = {
@@ -488,7 +515,15 @@ const CONFIG = {
   ],
 
   extras: [
-    { icon: "🎥", title: "Interlude", note: "muy pronto" },
+    {
+      icon: "🎥",
+      title: "Interlude",
+      note: "muy pronto",
+      video: "",
+      poster: "",
+      secretVideo: "",
+      secretPoster: ""
+    },
     { icon: "📓", title: "Cuaderno de bocetos", note: "muy pronto" }
   ]
 };
@@ -624,6 +659,37 @@ CONFIG.extras.forEach(extra => {
       <p>${extra.note}</p>
     `;
   }
+
+  if ("secretVideo" in extra) {
+    const secretWrap = document.createElement("div");
+    secretWrap.className = "secret-wrap";
+    secretWrap.innerHTML = `
+      <button class="secret-toggle" type="button">¿hay algo más? 👀</button>
+      <div class="secret-content" hidden>
+        ${extra.secretVideo ? `
+          <div class="extra-media">
+            <video controls playsinline preload="none" poster="${extra.secretPoster || ""}">
+              <source src="${extra.secretVideo}" type="video/mp4">
+            </video>
+          </div>
+        ` : `<p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>`}
+      </div>
+    `;
+    const toggleBtn = secretWrap.querySelector(".secret-toggle");
+    const content = secretWrap.querySelector(".secret-content");
+    toggleBtn.addEventListener("click", () => {
+      const nowHidden = content.hasAttribute("hidden");
+      if (nowHidden) {
+        content.removeAttribute("hidden");
+        toggleBtn.textContent = "ocultar";
+      } else {
+        content.setAttribute("hidden", "");
+        toggleBtn.textContent = "¿hay algo más? 👀";
+      }
+    });
+    card.appendChild(secretWrap);
+  }
+
   extrasEl.appendChild(card);
 });
 
