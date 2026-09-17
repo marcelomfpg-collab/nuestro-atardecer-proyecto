@@ -1,0 +1,428 @@
+<title>Nuestro Atardecer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Caveat:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sun:#ff9a5a;
+    --coral:#ff6f8e;
+    --gold:#f6c667;
+    --dusk:#2c1a3b;
+    --dusk-deep:#1b0f28;
+    --paper:#fff3e4;
+    --ink:#3a2440;
+    --ink-soft:#6c5470;
+    --line: rgba(255,214,170,.28);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255,154,90,.35), transparent 60%),
+      linear-gradient(180deg, var(--dusk) 0%, var(--dusk-deep) 55%, #120a1c 100%);
+    color:var(--paper);
+    font-family:"Work Sans", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; margin:0; }
+  .script{ font-family:"Caveat", cursive; }
+  img,video{ max-width:100%; display:block; }
+  [hidden]{ display:none!important; }
+
+  .wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding-inline:20px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding-block: 72px 56px;
+    text-align:center;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0; z-index:-1;
+    background:
+      radial-gradient(60% 45% at 50% 15%, rgba(255,198,103,.55), transparent 70%),
+      radial-gradient(80% 50% at 80% 0%, rgba(255,111,142,.35), transparent 60%),
+      radial-gradient(70% 40% at 15% 5%, rgba(255,154,90,.35), transparent 60%);
+    animation: glow 12s ease-in-out infinite alternate;
+  }
+  @keyframes glow{
+    0%{ opacity:.75; transform:translateY(0);}
+    100%{ opacity:1; transform:translateY(8px);}
+  }
+  .sun{
+    width:min(52vw,220px); height:min(52vw,220px);
+    margin:0 auto 28px;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffe3ad, var(--sun) 45%, var(--coral) 100%);
+    box-shadow: 0 0 60px 10px rgba(255,154,90,.45);
+    position:relative;
+  }
+  .sun::after{
+    content:"";
+    position:absolute; left:50%; top:100%; transform:translateX(-50%);
+    width:1px; height:26px;
+    background:linear-gradient(var(--line), transparent);
+  }
+  .eyebrow{
+    font-family:"Caveat", cursive;
+    font-size:1.5rem;
+    color:var(--gold);
+    letter-spacing:.02em;
+    margin-bottom:6px;
+  }
+  h1.title{
+    font-size:clamp(2.1rem, 7vw, 3.4rem);
+    font-weight:600;
+    line-height:1.08;
+    letter-spacing:-.01em;
+    color:#fff6ea;
+    text-wrap:balance;
+  }
+  .subtitle{
+    margin-top:14px;
+    font-size:1.05rem;
+    color:#f3d9c4;
+    font-weight:400;
+  }
+  .scrolldown{
+    margin-top:40px;
+    font-size:.85rem;
+    color:var(--ink-soft);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .scrolldown span{
+    display:inline-block;
+    margin-top:8px;
+    animation:bob 1.8s ease-in-out infinite;
+  }
+  @keyframes bob{ 50%{ transform:translateY(6px);} }
+
+  /* ---------- LETTER ---------- */
+  .letter{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:18px;
+    padding:34px 28px;
+    margin: 8px auto 60px;
+    max-width:560px;
+    transform:rotate(-.6deg);
+    box-shadow: 0 18px 40px -18px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.03);
+    position:relative;
+  }
+  .letter::before{
+    content:"🧡";
+    position:absolute; top:-16px; left:28px;
+    font-size:1.4rem;
+    background:var(--paper);
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 14px -6px rgba(0,0,0,.4);
+  }
+  .letter p{
+    font-family:"Caveat", cursive;
+    font-size:1.55rem;
+    line-height:1.45;
+    margin:0;
+    color:var(--ink);
+  }
+  .letter .sign{
+    display:block;
+    margin-top:16px;
+    text-align:right;
+    font-size:1.4rem;
+    color:var(--coral);
+  }
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-head{
+    text-align:center;
+    margin: 10px 0 34px;
+  }
+  .section-head .eyebrow{ margin-bottom:2px; }
+  .section-head h2{
+    font-size:clamp(1.5rem,5vw,2rem);
+    color:#fff6ea;
+  }
+
+  /* ---------- SONG LIST ---------- */
+  .songs{
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+    margin-bottom:56px;
+  }
+  .track{
+    background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px;
+    backdrop-filter: blur(2px);
+  }
+  .track-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .track-num{
+    font-family:"Fraunces", serif;
+    font-size:.95rem;
+    color:var(--gold);
+    border:1px solid var(--line);
+    border-radius:999px;
+    width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center;
+    flex:none;
+  }
+  .track-title{
+    font-size:1.25rem;
+    color:#fff6ea;
+  }
+  .track-media{
+    border-radius:14px;
+    overflow:hidden;
+    background:#000;
+    aspect-ratio:16/9;
+  }
+  .track-media video{ width:100%; height:100%; object-fit:cover; }
+  .track-caption{
+    margin:14px 4px 2px;
+    font-family:"Caveat", cursive;
+    font-size:1.3rem;
+    color:#f3d9c4;
+    line-height:1.4;
+  }
+
+  /* empty / coming soon state */
+  .track.empty{
+    border-style:dashed;
+    border-color:rgba(255,214,170,.35);
+    background:transparent;
+  }
+  .track.empty .track-media{
+    background:transparent;
+    border:1px dashed rgba(255,214,170,.3);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:6px;
+    color:var(--ink-soft);
+    aspect-ratio:16/9;
+  }
+  .track.empty .note-icon{ font-size:1.6rem; }
+  .track.empty .track-title{ color:#e9c8ba; }
+
+  /* ---------- EXTRAS ---------- */
+  .extras{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:70px;
+  }
+  @media (max-width:480px){
+    .extras{ grid-template-columns:1fr; }
+  }
+  .extra-card{
+    border:1px dashed rgba(255,214,170,.35);
+    border-radius:18px;
+    padding:22px 16px;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  .extra-card .glyph{ font-size:1.8rem; display:block; margin-bottom:8px; }
+  .extra-card h3{ font-size:1.05rem; color:#f3d9c4; margin-bottom:4px; }
+  .extra-card p{ font-size:.85rem; margin:0; }
+
+  .extra-card.has-video{
+    border-style:solid;
+    background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    padding:16px;
+    text-align:left;
+  }
+  .extra-card.has-video .glyph{ display:none; }
+  .extra-card.has-video h3{
+    font-family:"Fraunces", serif;
+    font-size:1.05rem;
+    margin-bottom:10px;
+  }
+  .extra-card.has-video .extra-media{
+    border-radius:12px;
+    overflow:hidden;
+    background:#000;
+    aspect-ratio:16/9;
+    margin-bottom:8px;
+  }
+  .extra-card.has-video .extra-media video{ width:100%; height:100%; object-fit:cover; }
+  .extra-card.has-video p{ font-family:"Caveat", cursive; font-size:1.15rem; color:#f3d9c4; }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    text-align:center;
+    padding-block:20px 48px;
+    color:var(--ink-soft);
+    font-size:.85rem;
+  }
+  footer .heart{ color:var(--coral); }
+  footer .script{ font-size:1.2rem; color:var(--gold); display:block; margin-bottom:6px; }
+</style>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="sun"></div>
+    <div class="eyebrow">para ti</div>
+    <h1 class="title" id="page-title">Nuestro Atardecer</h1>
+    <p class="subtitle" id="page-subtitle">una playlist hecha con todo mi cariño</p>
+    <div class="scrolldown">desliza<span>↓</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="letter">
+    <p id="page-message">Cada canción de esta lista guarda un pedacito de nosotros. Algunas las escribí pensando en ti, otras me recuerdan momentos que quiero conservar siempre. Espero que al escucharlas sientas todo lo que no siempre alcanzo a decir con palabras.</p>
+    <span class="sign">— Marcelo</span>
+  </div>
+
+  <div class="section-head">
+    <div class="eyebrow script">la playlist</div>
+    <h2>Nuestras canciones</h2>
+  </div>
+
+  <div class="songs" id="songs-container"></div>
+
+  <div class="section-head">
+    <div class="eyebrow script">un poco más</div>
+    <h2>Extras</h2>
+  </div>
+
+  <div class="extras" id="extras-container"></div>
+
+  <footer>
+    <span class="script">gracias por escuchar</span>
+    hecho con <span class="heart">♡</span> para ti
+  </footer>
+</div>
+
+<script>
+/* =====================================================================
+   ✏️  CÓMO EDITAR ESTA PÁGINA
+   -----------------------------------------------------------------
+   Todo lo que se ve en la página sale del objeto CONFIG de aquí abajo.
+   No hace falta tocar el HTML ni el CSS: basta con cambiar los textos
+   entre comillas " " para actualizar el título, el mensaje o los
+   comentarios de cada canción.
+
+   - pageTitle   → el título grande de arriba (por ejemplo, su nombre)
+   - subtitle    → la frase chiquita debajo del título
+   - message     → la "carta" que aparece en la tarjeta color crema
+   - songs       → la lista de canciones. Cada canción tiene:
+                     title   → nombre de la canción
+                     caption → el texto/nota debajo del video
+                     video   → el archivo de video (déjalo vacío "" si
+                               todavía no tienes esa canción lista;
+                               se mostrará como "muy pronto")
+                     poster  → imagen que se ve antes de dar play
+
+   Para agregar una canción nueva más adelante, avísame (a Claude) y yo
+   subo el video y completo el bloque correspondiente en esta lista.
+   ===================================================================== */
+
+const CONFIG = {
+  pageTitle: "Nuestro Atardecer",
+  subtitle: "una playlist hecha con todo mi cariño",
+  message: "Cada canción de esta lista guarda un pedacito de nosotros. Algunas las escribí pensando en ti, otras me recuerdan momentos que quiero conservar siempre. Espero que al escucharlas sientas todo lo que no siempre alcanzo a decir con palabras.",
+  sign: "— Marcelo",
+
+  songs: [
+    { title: "", caption: "", video: "", poster: "" },
+    { title: "", caption: "", video: "", poster: "" },
+    { title: "", caption: "", video: "", poster: "" },
+    { title: "", caption: "", video: "", poster: "" },
+    {
+      title: "Ese Atardecer",
+      caption: "La primera de nuestra lista. Cada vez que la escucho pienso en ti.",
+      video: "media/ese-atardecer.mp4",
+      poster: "media/ese-atardecer-poster.jpg"
+    }
+  ],
+
+  extras: [
+    { icon: "🎥", title: "Interlude", note: "muy pronto" },
+    { icon: "📓", title: "Cuaderno de bocetos", note: "muy pronto" }
+  ]
+};
+
+/* ------------------------- render (no tocar) ------------------------- */
+document.getElementById("page-title").textContent = CONFIG.pageTitle;
+document.getElementById("page-subtitle").textContent = CONFIG.subtitle;
+document.getElementById("page-message").textContent = CONFIG.message;
+document.querySelector(".letter .sign").textContent = CONFIG.sign;
+document.title = CONFIG.pageTitle;
+
+const songsEl = document.getElementById("songs-container");
+CONFIG.songs.forEach((song, i) => {
+  const num = String(i + 1).padStart(2, "0");
+  const track = document.createElement("div");
+
+  if (song.video) {
+    track.className = "track";
+    track.innerHTML = `
+      <div class="track-head">
+        <div class="track-num">${num}</div>
+        <div class="track-title">${song.title}</div>
+      </div>
+      <div class="track-media">
+        <video controls playsinline preload="none" poster="${song.poster || ""}">
+          <source src="${song.video}" type="video/mp4">
+        </video>
+      </div>
+      ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
+    `;
+  } else {
+    track.className = "track empty";
+    track.innerHTML = `
+      <div class="track-head">
+        <div class="track-num">${num}</div>
+        <div class="track-title">${song.title || "Próxima canción"}</div>
+      </div>
+      <div class="track-media">
+        <span class="note-icon">🎵</span>
+        <span>muy pronto...</span>
+      </div>
+    `;
+  }
+  songsEl.appendChild(track);
+});
+
+const extrasEl = document.getElementById("extras-container");
+CONFIG.extras.forEach(extra => {
+  const card = document.createElement("div");
+  if (extra.video) {
+    card.className = "extra-card has-video";
+    card.innerHTML = `
+      <h3>${extra.icon} ${extra.title}</h3>
+      <div class="extra-media">
+        <video controls playsinline preload="none" poster="${extra.poster || ""}">
+          <source src="${extra.video}" type="video/mp4">
+        </video>
+      </div>
+      ${extra.note ? `<p>${extra.note}</p>` : ""}
+    `;
+  } else {
+    card.className = "extra-card";
+    card.innerHTML = `
+      <span class="glyph">${extra.icon}</span>
+      <h3>${extra.title}</h3>
+      <p>${extra.note}</p>
+    `;
+  }
+  extrasEl.appendChild(card);
+});
+</script>
