@@ -410,6 +410,15 @@
   .extra-card .glyph{ font-size:1.8rem; display:block; margin-bottom:8px; }
   .extra-card h3{ font-size:1.05rem; color:#f3d9c4; margin-bottom:4px; }
   .extra-card p{ font-size:.85rem; margin:0; }
+  .file-link{
+    display:inline-block;
+    margin-top:12px;
+    font-size:.8rem;
+    color:var(--gold);
+    text-decoration:none;
+    border-bottom:1px solid rgba(246,198,103,.5);
+  }
+  .file-link:hover{ border-color:var(--gold); }
 
   .extra-card.has-video{
     border-style:solid;
@@ -625,7 +634,12 @@ const CONFIG = {
       secretVideo: "",
       secretPoster: ""
     },
-    { icon: "📓", title: "Cuaderno de bocetos", note: "muy pronto" }
+    {
+      icon: "📓",
+      title: "Cuaderno de bocetos",
+      note: "Primeras versiones de cada canción. Al final no llegan a la versión final, pero son como la materia prima.",
+      file: "media/gracias-bocetos.docx"
+    }
   ]
 };
 
@@ -779,6 +793,7 @@ CONFIG.extras.forEach(extra => {
       <span class="glyph">${extra.icon}</span>
       <h3>${extra.title}</h3>
       <p>${extra.note}</p>
+      ${extra.file ? `<a class="file-link" href="${extra.file}" target="_blank" rel="noopener">Ver el cuaderno →</a>` : ""}
     `;
   }
 
