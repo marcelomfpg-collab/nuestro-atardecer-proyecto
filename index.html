@@ -44,10 +44,11 @@
       radial-gradient(120% 50% at 50% 0%, rgba(255,154,90,.18), transparent 55%),
       linear-gradient(180deg, #070812 0%, #0b0e1c 45%, #05060c 100%);
   }
-  .night-drive canvas{
+  .night-drive video{
     position:absolute; inset:0;
     width:100%; height:100%;
-    display:block;
+    object-fit:cover;
+    filter: brightness(.5) saturate(1.15) contrast(1.05);
   }
   .night-drive .vignette{
     position:absolute; inset:0;
@@ -514,7 +515,9 @@
 </style>
 
 <div class="night-drive" aria-hidden="true">
-  <canvas id="speed-canvas"></canvas>
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
+    <source src="media/night-drive-bg.mp4" type="video/mp4">
+  </video>
   <div class="vignette"></div>
   <div class="pillar left"></div>
   <div class="pillar right"></div>
@@ -846,89 +849,14 @@ function checkReveal() {
   requestAnimationFrame(revealLoop);
 })();
 
-/* ------------------------- tunel de luces (velocidad) ------------------------- */
+/* ------------------------- video de fondo ------------------------- */
 (function () {
-  const canvas = document.getElementById("speed-canvas");
-  const ctx = canvas.getContext("2d");
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  let W, H, cx, cy;
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    cx = W / 2;
-    cy = H * 0.42;
-  }
-  resize();
-  window.addEventListener("resize", resize);
-
-  function newParticle() {
-    return {
-      x: (Math.random() - 0.5) * W * 1.6,
-      y: (Math.random() - 0.5) * H * 1.6,
-      z: Math.random() * W + W * 0.3,
-      warm: Math.random() < 0.78
-    };
-  }
-
-  const COUNT = window.innerWidth < 640 ? 110 : 170;
-  const particles = [];
-  for (let i = 0; i < COUNT; i++) {
-    const p = newParticle();
-    p.z = Math.random() * W;
-    p.pz = p.z;
-    particles.push(p);
-  }
-
-  const SPEED = 16;
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    for (const p of particles) {
-      p.pz = p.z;
-      p.z -= SPEED;
-      if (p.z < 1) {
-        const fresh = newParticle();
-        fresh.z = W;
-        fresh.pz = W;
-        Object.assign(p, fresh);
-        continue;
-      }
-      const sx = cx + (p.x / p.z) * W;
-      const sy = cy + (p.y / p.z) * H * 0.6;
-      const px = cx + (p.x / p.pz) * W;
-      const py = cy + (p.y / p.pz) * H * 0.6;
-
-      if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue;
-
-      const depth = 1 - p.z / W;
-      const size = Math.max(0.6, depth * 3.4);
-      const alpha = Math.min(1, depth * 1.5);
-      ctx.strokeStyle = p.warm
-        ? `rgba(255,214,170,${alpha})`
-        : `rgba(255,100,80,${alpha})`;
-      ctx.lineWidth = size;
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(sx, sy);
-      ctx.stroke();
-    }
-  }
-
-  if (reduceMotion) return;
-
-  let rafId = requestAnimationFrame(function loop() {
-    draw();
-    rafId = requestAnimationFrame(loop);
-  });
+  const video = document.getElementById("bg-video");
+  if (!video) return;
+  video.play().catch(() => {});
   document.addEventListener("visibilitychange", () => {
-    cancelAnimationFrame(rafId);
-    if (!document.hidden) {
-      rafId = requestAnimationFrame(function loop() {
-        draw();
-        rafId = requestAnimationFrame(loop);
-      });
-    }
+    if (document.hidden) video.pause();
+    else video.play().catch(() => {});
   });
 })();
 </script>
