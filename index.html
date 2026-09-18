@@ -55,81 +55,27 @@
     background: radial-gradient(120% 75% at 50% 105%, transparent 35%, rgba(0,0,0,.6) 100%);
   }
 
-  /* ---- parabrisas: pilares, techo y espejo ---- */
-  .night-drive .headliner{
-    position:absolute; top:0; left:0; right:0; height:4%;
-    background:#050308;
+  /* ---- mensaje de la tortuga ---- */
+  .turtle-msg{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%) translateY(12px);
+    background:linear-gradient(160deg, rgba(20,60,50,.92), rgba(10,30,26,.95));
+    border:1px solid rgba(150,255,210,.35);
+    color:#eafff2;
+    font-family:"Caveat", cursive;
+    font-size:1.3rem;
+    padding:10px 20px;
+    border-radius:999px;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.6);
+    z-index:50;
+    opacity:0;
+    transition:opacity .4s ease, transform .4s ease;
+    pointer-events:none;
   }
-  .night-drive .pillar{
-    position:absolute; top:0; width:38%; height:52%;
-    background:linear-gradient(135deg, #0e0c14, #030204);
-  }
-  .night-drive .pillar.left{
-    left:0;
-    clip-path: polygon(0 0, 100% 0, 0 100%);
-  }
-  .night-drive .pillar.right{
-    right:0;
-    clip-path: polygon(100% 0, 100% 100%, 0 0);
-  }
-  .night-drive .mirror-stalk{
-    position:absolute; top:0; left:50%; width:3px; height:16px;
-    transform:translateX(-50%);
-    background:#050308;
-  }
-  .night-drive .mirror{
-    position:absolute; top:14px; left:50%; width:84px; height:18px;
-    transform:translateX(-50%);
-    background:linear-gradient(180deg, #16131c, #050308);
-    border-radius:7px;
-    box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
-  }
-
-  /* ---- tablero del carro ---- */
-  .night-drive .dash{
-    position:absolute; left:-8%; right:-8%; bottom:-6vh;
-    height:38vh;
-    background: linear-gradient(180deg, transparent 0%, rgba(8,7,10,.88) 22%, #08070a 100%);
-    border-radius:50% 50% 0 0 / 16% 16% 0 0;
-    animation: dashPulse 4.5s ease-in-out infinite;
-  }
-  @keyframes dashPulse{
-    0%,100%{ opacity:.92; }
-    50%{ opacity:1; }
-  }
-  .night-drive .wheel{
-    position:absolute; left:-18vw; bottom:-26vw;
-    width:54vw; height:54vw;
-    border-radius:50%;
-    border:16px solid #14121a;
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,.06), 0 0 30px rgba(0,0,0,.6);
-  }
-  .night-drive .console{
-    position:absolute; left:58%; bottom:7vh;
-    width:min(52%, 300px);
-    transform:translateX(-40%);
-  }
-  .night-drive .screen{
-    background:#100e14;
-    border:1px solid rgba(255,90,60,.35);
-    border-radius:10px;
-    padding:9px 14px;
-    box-shadow: 0 0 22px rgba(255,70,50,.22), inset 0 0 14px rgba(255,70,50,.08);
-  }
-  .night-drive .screen-bar{ margin-top:0; height:3px; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden; }
-  .night-drive .screen-bar span{ display:block; height:100%; width:10%; background:#ff5a3c; animation:barMove 6s linear infinite; }
-  @keyframes barMove{ 0%{ width:6%; } 100%{ width:94%; } }
-  .night-drive .buttons{ display:flex; gap:8px; margin-top:10px; justify-content:center; }
-  .night-drive .buttons span{
-    width:9px; height:9px; border-radius:50%;
-    background:radial-gradient(circle, #ff6a4a, #3a0e08);
-    box-shadow:0 0 6px rgba(255,80,50,.7);
-  }
-  @media (max-width:480px){
-    .night-drive .console{ left:60%; bottom:6.5vh; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .night-drive .dash, .night-drive .screen-bar span{ animation:none; }
+  .turtle-msg.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
   }
 
   /* ---------- SCROLL REVEAL ---------- */
@@ -518,21 +464,8 @@
     <source src="media/night-drive-bg.mp4" type="video/mp4">
   </video>
   <div class="vignette"></div>
-  <div class="pillar left"></div>
-  <div class="pillar right"></div>
-  <div class="headliner"></div>
-  <div class="mirror-stalk"></div>
-  <div class="mirror"></div>
-  <div class="dash">
-    <div class="wheel"></div>
-    <div class="console">
-      <div class="screen">
-        <div class="screen-bar"><span></span></div>
-      </div>
-      <div class="buttons"><span></span><span></span><span></span><span></span><span></span></div>
-    </div>
-  </div>
 </div>
+<div class="turtle-msg" id="turtle-msg" aria-hidden="true">Sip, soy la tortuga 🐢</div>
 
 <div class="hero">
   <div class="wrap">
@@ -620,7 +553,7 @@
 const CONFIG = {
   pageTitle: "Gracias",
   subtitle: "una playlist hecha con todo mi cariño",
-  message: "Hola Cami, si estás viendo esto es porque llegó el día: tu cumple. Y para esta fecha tan importante para ti te hice este pequeño EP de 5 canciones que demuestran lo mucho que te quiero, aunque la verdad se quedan cortas. Cada una toca un tema alrededor de nosotros y reafirma el cariño que tengo, pero también es un gracias por dejarme estar ahí para ti, es un gracias por haberme encontrado cuando no quería ser encontrado, es un gracias por permitirme quedarme y quererte... Disfrútalo.",
+  message: "Hola Cami, si estás viendo esto es porque llegó el día: tu cumple. Y para esta fecha tan importante para ti te hice este pequeño EP de 7 canciones que demuestran lo mucho que te quiero, aunque la verdad se quedan cortas. Cada una toca un tema alrededor de nosotros y reafirma el cariño que tengo, pero también es un gracias por dejarme estar ahí para ti, es un gracias por haberme encontrado cuando no quería ser encontrado, es un gracias por permitirme quedarme y quererte... Disfrútalo.",
   sign: "— Marcelo",
 
   songs: [
@@ -631,12 +564,17 @@ const CONFIG = {
       poster: ""
     },
     {
+      title: "Tortuga",
+      caption: "Ese viernes lo valió a mil, hace tiempo que no disfrutaba hablar con alguien.",
+      video: "media/tortuga.mp4",
+      poster: ""
+    },
+    {
       title: "No Se Trata De Eso",
       caption: "Me tardé 4 min en hacer esta, pero me encanta wuaaaaa. ¿De qué trata? Escúchala y descúbrelo.",
       video: "media/no-se-trata-de-eso.mp4",
       poster: ""
     },
-    { title: "", caption: "", video: "", poster: "" },
     { title: "", caption: "", video: "", poster: "" },
     {
       title: "Ese Atardecer",
@@ -829,6 +767,14 @@ CONFIG.extras.forEach(extra => {
     if (mainVideo) {
       mainVideo.addEventListener("ended", () => {
         unlockMsg.removeAttribute("hidden");
+      });
+      let turtleShown = false;
+      mainVideo.addEventListener("play", () => {
+        if (turtleShown) return;
+        turtleShown = true;
+        const turtleMsg = document.getElementById("turtle-msg");
+        turtleMsg.classList.add("show");
+        setTimeout(() => turtleMsg.classList.remove("show"), 3200);
       });
     }
   }
