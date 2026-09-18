@@ -87,6 +87,36 @@
     background: radial-gradient(120% 75% at 50% 105%, transparent 35%, rgba(0,0,0,.6) 100%);
   }
 
+  /* ---- parabrisas: pilares, techo y espejo ---- */
+  .night-drive .headliner{
+    position:absolute; top:0; left:0; right:0; height:4%;
+    background:#050308;
+  }
+  .night-drive .pillar{
+    position:absolute; top:0; width:38%; height:52%;
+    background:linear-gradient(135deg, #0e0c14, #030204);
+  }
+  .night-drive .pillar.left{
+    left:0;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  .night-drive .pillar.right{
+    right:0;
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+  }
+  .night-drive .mirror-stalk{
+    position:absolute; top:0; left:50%; width:3px; height:16px;
+    transform:translateX(-50%);
+    background:#050308;
+  }
+  .night-drive .mirror{
+    position:absolute; top:14px; left:50%; width:84px; height:18px;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg, #16131c, #050308);
+    border-radius:7px;
+    box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+  }
+
   /* ---- tablero del carro ---- */
   .night-drive .dash{
     position:absolute; left:-8%; right:-8%; bottom:-6vh;
@@ -530,6 +560,11 @@
   <div class="streak rev"></div>
   <div class="streak"></div>
   <div class="vignette"></div>
+  <div class="pillar left"></div>
+  <div class="pillar right"></div>
+  <div class="headliner"></div>
+  <div class="mirror-stalk"></div>
+  <div class="mirror"></div>
   <div class="dash">
     <div class="wheel"></div>
     <div class="console">
