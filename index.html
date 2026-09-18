@@ -355,7 +355,7 @@
     display:flex;
     justify-content:center;
     gap:8px;
-    margin-bottom:56px;
+    margin-bottom:16px;
   }
   .carousel-dot{
     width:8px; height:8px;
@@ -369,6 +369,19 @@
     background:var(--gold);
     transform:scale(1.35);
   }
+  .play-mode-toggle{
+    display:block;
+    margin:0 auto 56px;
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:.75rem;
+    padding:7px 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .play-mode-toggle:hover{ border-color:var(--gold); color:var(--gold); }
 
   /* ---------- EXTRAS ---------- */
   .extras{
@@ -495,6 +508,7 @@
     <button class="carousel-arrow next" id="songs-next" aria-label="Canción siguiente">›</button>
   </div>
   <div class="carousel-dots" id="songs-dots"></div>
+  <button class="play-mode-toggle" id="play-mode-toggle" type="button">➡️ En orden</button>
 
   <div class="section-head reveal">
     <div class="eyebrow script">un poco más</div>
@@ -696,16 +710,37 @@ trackEls.forEach(t => songObserver.observe(t));
 document.getElementById("songs-prev").addEventListener("click", () => goTo(currentIndex - 1));
 document.getElementById("songs-next").addEventListener("click", () => goTo(currentIndex + 1));
 
+let shuffleMode = false;
+const playModeBtn = document.getElementById("play-mode-toggle");
+playModeBtn.addEventListener("click", () => {
+  shuffleMode = !shuffleMode;
+  playModeBtn.textContent = shuffleMode ? "🔀 Aleatorio" : "➡️ En orden";
+});
+
+function playableIndicesExcluding(excludeIdx) {
+  const arr = [];
+  trackEls.forEach((t, i) => {
+    if (i !== excludeIdx && t.querySelector("video")) arr.push(i);
+  });
+  return arr;
+}
+
 /* avanza sola a la siguiente canción cuando termina el video actual */
 songsEl.querySelectorAll("video").forEach((video, playedIdx) => {
   video.addEventListener("ended", () => {
     const idx = trackEls.findIndex(t => t.contains(video));
-    const nextIdx = idx + 1;
-    if (nextIdx < trackEls.length) {
-      goTo(nextIdx);
-      const nextVideo = trackEls[nextIdx].querySelector("video");
-      if (nextVideo) nextVideo.play().catch(() => {});
+    let nextIdx;
+    if (shuffleMode) {
+      const candidates = playableIndicesExcluding(idx);
+      if (candidates.length === 0) return;
+      nextIdx = candidates[Math.floor(Math.random() * candidates.length)];
+    } else {
+      nextIdx = idx + 1;
+      if (nextIdx >= trackEls.length) return;
     }
+    goTo(nextIdx);
+    const nextVideo = trackEls[nextIdx].querySelector("video");
+    if (nextVideo) nextVideo.play().catch(() => {});
   });
 });
 
