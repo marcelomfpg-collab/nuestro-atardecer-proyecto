@@ -44,43 +44,10 @@
       radial-gradient(120% 50% at 50% 0%, rgba(255,154,90,.18), transparent 55%),
       linear-gradient(180deg, #070812 0%, #0b0e1c 45%, #05060c 100%);
   }
-  .night-drive .road-line{
-    position:absolute;
-    left:50%; top:0; bottom:0;
-    width:8px;
-    transform:translateX(-50%);
-    background: repeating-linear-gradient(to bottom, rgba(255,246,234,.65) 0 36px, transparent 36px 88px);
-    filter: blur(.3px);
-    animation: roadMove .55s linear infinite;
-    opacity:.5;
-  }
-  @keyframes roadMove{
-    from{ background-position-y:0; }
-    to{ background-position-y:124px; }
-  }
-  .night-drive .streak{
-    position:absolute;
-    height:2px;
-    width:160px;
-    border-radius:999px;
-    background:linear-gradient(90deg, transparent, rgba(255,214,170,.85), transparent);
-    filter: blur(1px);
-    animation-name: streakMove;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-  .night-drive .streak.rev{ animation-name: streakMoveRev; }
-  @keyframes streakMove{
-    from{ transform:translateX(-220px); opacity:0; }
-    8%{ opacity:1; }
-    92%{ opacity:1; }
-    to{ transform:translateX(120vw); opacity:0; }
-  }
-  @keyframes streakMoveRev{
-    from{ transform:translateX(120vw); opacity:0; }
-    8%{ opacity:1; }
-    92%{ opacity:1; }
-    to{ transform:translateX(-220px); opacity:0; }
+  .night-drive canvas{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    display:block;
   }
   .night-drive .vignette{
     position:absolute; inset:0;
@@ -175,14 +142,8 @@
     .night-drive .console{ left:60%; bottom:6.5vh; }
   }
   @media (prefers-reduced-motion: reduce){
-    .night-drive .road-line, .night-drive .streak, .night-drive .dash,
-    .night-drive .screen-bar span, .night-drive .eq span{ animation:none; }
+    .night-drive .dash, .night-drive .screen-bar span, .night-drive .eq span{ animation:none; }
   }
-  .night-drive .streak:nth-of-type(1){ top:18%; width:120px; animation-duration:2.6s; animation-delay:0s; }
-  .night-drive .streak:nth-of-type(2){ top:32%; width:200px; animation-duration:1.8s; animation-delay:.6s; }
-  .night-drive .streak:nth-of-type(3){ top:47%; width:90px;  animation-duration:3.4s; animation-delay:1.1s; }
-  .night-drive .streak:nth-of-type(4){ top:61%; width:170px; animation-duration:2.1s; animation-delay:.3s; }
-  .night-drive .streak:nth-of-type(5){ top:74%; width:130px; animation-duration:2.9s; animation-delay:1.6s; }
 
   /* ---------- SCROLL REVEAL ---------- */
   .reveal{
@@ -553,12 +514,7 @@
 </style>
 
 <div class="night-drive" aria-hidden="true">
-  <div class="road-line"></div>
-  <div class="streak"></div>
-  <div class="streak rev"></div>
-  <div class="streak"></div>
-  <div class="streak rev"></div>
-  <div class="streak"></div>
+  <canvas id="speed-canvas"></canvas>
   <div class="vignette"></div>
   <div class="pillar left"></div>
   <div class="pillar right"></div>
@@ -888,5 +844,91 @@ function checkReveal() {
 (function revealLoop() {
   if (checkReveal()) return;
   requestAnimationFrame(revealLoop);
+})();
+
+/* ------------------------- tunel de luces (velocidad) ------------------------- */
+(function () {
+  const canvas = document.getElementById("speed-canvas");
+  const ctx = canvas.getContext("2d");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let W, H, cx, cy;
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cx = W / 2;
+    cy = H * 0.42;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function newParticle() {
+    return {
+      x: (Math.random() - 0.5) * W * 1.6,
+      y: (Math.random() - 0.5) * H * 1.6,
+      z: Math.random() * W + W * 0.3,
+      warm: Math.random() < 0.78
+    };
+  }
+
+  const COUNT = window.innerWidth < 640 ? 110 : 170;
+  const particles = [];
+  for (let i = 0; i < COUNT; i++) {
+    const p = newParticle();
+    p.z = Math.random() * W;
+    p.pz = p.z;
+    particles.push(p);
+  }
+
+  const SPEED = 16;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.pz = p.z;
+      p.z -= SPEED;
+      if (p.z < 1) {
+        const fresh = newParticle();
+        fresh.z = W;
+        fresh.pz = W;
+        Object.assign(p, fresh);
+        continue;
+      }
+      const sx = cx + (p.x / p.z) * W;
+      const sy = cy + (p.y / p.z) * H * 0.6;
+      const px = cx + (p.x / p.pz) * W;
+      const py = cy + (p.y / p.pz) * H * 0.6;
+
+      if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue;
+
+      const depth = 1 - p.z / W;
+      const size = Math.max(0.6, depth * 3.4);
+      const alpha = Math.min(1, depth * 1.5);
+      ctx.strokeStyle = p.warm
+        ? `rgba(255,214,170,${alpha})`
+        : `rgba(255,100,80,${alpha})`;
+      ctx.lineWidth = size;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+    }
+  }
+
+  if (reduceMotion) return;
+
+  let rafId = requestAnimationFrame(function loop() {
+    draw();
+    rafId = requestAnimationFrame(loop);
+  });
+  document.addEventListener("visibilitychange", () => {
+    cancelAnimationFrame(rafId);
+    if (!document.hidden) {
+      rafId = requestAnimationFrame(function loop() {
+        draw();
+        rafId = requestAnimationFrame(loop);
+      });
+    }
+  });
 })();
 </script>
