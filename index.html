@@ -481,19 +481,32 @@
   .extra-card.has-video .extra-media video{ width:100%; height:100%; object-fit:cover; }
   .extra-card.has-video p{ font-family:"Caveat", cursive; font-size:1.15rem; color:#f3d9c4; }
 
-  .secret-toggle{
-    display:block;
+  .unlock-msg{
     margin-top:12px;
-    background:none;
-    border:1px dashed rgba(255,214,170,.35);
-    color:var(--ink-soft);
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid rgba(255,214,170,.4);
+    background:linear-gradient(160deg, rgba(255,214,170,.12), rgba(255,214,170,.03));
+    text-align:center;
+  }
+  .unlock-msg p{
+    margin:0 0 10px;
+    font-family:"Caveat", cursive;
+    font-size:1.2rem;
+    color:#f3d9c4;
+  }
+  .unlock-yes{
+    background:var(--gold);
+    color:#3a2440;
+    border:none;
     font-family:inherit;
-    font-size:.72rem;
-    padding:6px 10px;
+    font-weight:600;
+    font-size:.8rem;
+    padding:8px 16px;
     border-radius:999px;
     cursor:pointer;
   }
-  .secret-toggle:hover{ border-color:var(--gold); color:var(--gold); }
+  .unlock-yes:hover{ filter:brightness(1.08); }
   .secret-content{ margin-top:10px; }
   .secret-content .extra-media{
     border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9;
@@ -609,11 +622,15 @@
    subo el video y completo el bloque correspondiente en esta lista.
 
    - extras      → las tarjetas de "Extras". La de "Interlude" tiene un
-                    campo extra "secretVideo": si lo dejas vacío "" se
-                    ve un botoncito discreto "¿hay algo más?" que al
-                    abrirse dice "todavía no hay nada aquí"; en cuanto
-                    le pongas un video ahí, ese botón (que solo existe
-                    dentro de Interlude) lo revela.
+                    campo extra "secretVideo": queda oculto y NO se
+                    muestra ningún botón hasta que la persona termine
+                    de ver el video principal de Interlude completo;
+                    justo cuando acaba, aparece un mensaje ("se
+                    desbloqueó una canción secreta, ¿quieres
+                    escucharla?") y al aceptar se revela y reproduce
+                    ese secretVideo. Si lo dejas vacío "" el mensaje
+                    igual aparece pero adentro dice "todavía no hay
+                    nada aquí".
    ===================================================================== */
 
 const CONFIG = {
@@ -651,8 +668,8 @@ const CONFIG = {
     {
       icon: "🎥",
       title: "Interlude",
-      note: "muy pronto",
-      video: "",
+      note: "",
+      video: "media/interludio.mp4",
       poster: "",
       secretVideo: "",
       secretPoster: ""
@@ -797,7 +814,10 @@ CONFIG.extras.forEach(extra => {
     const secretWrap = document.createElement("div");
     secretWrap.className = "secret-wrap";
     secretWrap.innerHTML = `
-      <button class="secret-toggle" type="button">¿hay algo más? 👀</button>
+      <div class="unlock-msg" hidden>
+        <p>🎵 Se desbloqueó una canción secreta. ¿Quieres escucharla?</p>
+        <button class="unlock-yes" type="button">Sí, escuchar</button>
+      </div>
       <div class="secret-content" hidden>
         ${extra.secretVideo ? `
           <div class="extra-media">
@@ -808,19 +828,25 @@ CONFIG.extras.forEach(extra => {
         ` : `<p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>`}
       </div>
     `;
-    const toggleBtn = secretWrap.querySelector(".secret-toggle");
-    const content = secretWrap.querySelector(".secret-content");
-    toggleBtn.addEventListener("click", () => {
-      const nowHidden = content.hasAttribute("hidden");
-      if (nowHidden) {
-        content.removeAttribute("hidden");
-        toggleBtn.textContent = "ocultar";
-      } else {
-        content.setAttribute("hidden", "");
-        toggleBtn.textContent = "¿hay algo más? 👀";
-      }
-    });
     card.appendChild(secretWrap);
+
+    const unlockMsg = secretWrap.querySelector(".unlock-msg");
+    const unlockYes = secretWrap.querySelector(".unlock-yes");
+    const content = secretWrap.querySelector(".secret-content");
+
+    unlockYes.addEventListener("click", () => {
+      unlockMsg.setAttribute("hidden", "");
+      content.removeAttribute("hidden");
+      const secretVideoEl = content.querySelector("video");
+      if (secretVideoEl) secretVideoEl.play().catch(() => {});
+    });
+
+    const mainVideo = card.querySelector(".extra-media video");
+    if (mainVideo) {
+      mainVideo.addEventListener("ended", () => {
+        unlockMsg.removeAttribute("hidden");
+      });
+    }
   }
 
   extrasEl.appendChild(card);
