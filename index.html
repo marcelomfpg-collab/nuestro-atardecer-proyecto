@@ -766,6 +766,10 @@ CONFIG.songs.forEach((song, i) => {
 
 function goTo(idx) {
   idx = Math.max(0, Math.min(trackEls.length - 1, idx));
+  trackEls.forEach(t => {
+    const v = t.querySelector("video");
+    if (v && !v.paused) v.pause();
+  });
   trackEls[idx].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
 }
 
