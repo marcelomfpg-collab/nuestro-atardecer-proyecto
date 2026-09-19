@@ -78,6 +78,31 @@
     transform:translateX(-50%) translateY(0);
   }
 
+  /* ---- toast de cancion desbloqueada ---- */
+  .unlock-toast{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%) translateY(12px);
+    background:linear-gradient(160deg, rgba(60,45,20,.92), rgba(30,20,10,.95));
+    border:1px solid rgba(255,214,170,.5);
+    color:#fff6ea;
+    font-family:"Fraunces", serif;
+    font-size:1.1rem;
+    padding:14px 26px;
+    border-radius:16px;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.6);
+    z-index:50;
+    opacity:0;
+    transition:opacity .4s ease, transform .4s ease;
+    pointer-events:none;
+    text-align:center;
+  }
+  .unlock-toast .eyebrow{ margin-bottom:2px; }
+  .unlock-toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
   /* ---------- SCROLL REVEAL ---------- */
   .reveal{
     opacity:0;
@@ -493,6 +518,10 @@
   <div class="vignette"></div>
 </div>
 <div class="turtle-msg" id="turtle-msg" aria-hidden="true">Sip, soy la tortuga 🐢</div>
+<div class="unlock-toast" id="unlock-toast" aria-hidden="true">
+  <div class="eyebrow script">se desbloqueó</div>
+  <div id="unlock-toast-title"></div>
+</div>
 
 <div class="hero">
   <div class="wrap">
@@ -734,11 +763,19 @@ function updateDots() {
 }
 updateDots();
 
+let unlockToastShown = false;
 const songObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
       currentIndex = trackEls.indexOf(entry.target);
       updateDots();
+      if (currentIndex === lockedIndex && prereqMet && !unlockToastShown) {
+        unlockToastShown = true;
+        const toast = document.getElementById("unlock-toast");
+        document.getElementById("unlock-toast-title").textContent = CONFIG.songs[lockedIndex].title;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3800);
+      }
     }
   });
 }, { root: songsEl, threshold: [0.6] });
