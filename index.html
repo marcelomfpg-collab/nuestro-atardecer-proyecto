@@ -589,10 +589,13 @@
                                se mostrará como "muy pronto")
                      poster  → imagen que se ve antes de dar play
                      locked  → true solo en la última canción: se
-                               mantiene bloqueada ("???") hasta que
-                               TODAS las demás tengan su video puesto.
-                               En cuanto completes las otras 6, esta
-                               se desbloquea sola.
+                               mantiene bloqueada ("???") hasta que la
+                               PERSONA QUE ESTÁ VIENDO el sitio termine
+                               de ver (hasta el final) cada una de las
+                               demás canciones. Se guarda en su propio
+                               navegador (localStorage), así que solo
+                               con recorrer/deslizar el carrusel sin
+                               darle play no se desbloquea nada.
 
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
@@ -705,17 +708,44 @@ const dotsEl = document.getElementById("songs-dots");
 const trackEls = [];
 
 const lockedIndex = CONFIG.songs.findIndex(s => s.locked);
-const prereqMet = lockedIndex === -1
-  ? true
-  : CONFIG.songs.every((s, idx) => idx === lockedIndex || !!s.video);
+const otherIndices = CONFIG.songs
+  .map((s, idx) => idx)
+  .filter(idx => idx !== lockedIndex && !!CONFIG.songs[idx].video);
+
+const WATCHED_KEY = "gracias-watched-songs";
+const CELEBRATED_KEY = "gracias-unlock-celebrated";
+
+function loadWatched() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(WATCHED_KEY) || "[]");
+    return new Set(Array.isArray(raw) ? raw : []);
+  } catch (e) {
+    return new Set();
+  }
+}
+function saveWatched(set) {
+  try { localStorage.setItem(WATCHED_KEY, JSON.stringify([...set])); } catch (e) {}
+}
+function hasCelebrated() {
+  try { return localStorage.getItem(CELEBRATED_KEY) === "1"; } catch (e) { return false; }
+}
+function markCelebrated() {
+  try { localStorage.setItem(CELEBRATED_KEY, "1"); } catch (e) {}
+}
+
+const watchedSet = loadWatched();
+function isFullyWatched() {
+  return lockedIndex === -1 || otherIndices.every(idx => watchedSet.has(idx));
+}
+let prereqMet = isFullyWatched();
 
 CONFIG.songs.forEach((song, i) => {
   const num = String(i + 1).padStart(2, "0");
   const track = document.createElement("div");
 
   if (song.locked && !prereqMet) {
-    const doneCount = CONFIG.songs.filter((s, idx) => idx !== lockedIndex && s.video).length;
-    const totalOthers = CONFIG.songs.length - 1;
+    const doneCount = otherIndices.filter(idx => watchedSet.has(idx)).length;
+    const totalOthers = otherIndices.length;
     track.className = "track locked";
     track.innerHTML = `
       <div class="track-head">
@@ -780,19 +810,21 @@ function updateDots() {
 }
 updateDots();
 
-let unlockToastShown = false;
+function showUnlockToast() {
+  if (hasCelebrated()) return;
+  markCelebrated();
+  const toast = document.getElementById("unlock-toast");
+  document.getElementById("unlock-toast-title").textContent = CONFIG.songs[lockedIndex].title;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3800);
+}
+
 const songObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
       currentIndex = trackEls.indexOf(entry.target);
       updateDots();
-      if (currentIndex === lockedIndex && prereqMet && !unlockToastShown) {
-        unlockToastShown = true;
-        const toast = document.getElementById("unlock-toast");
-        document.getElementById("unlock-toast-title").textContent = CONFIG.songs[lockedIndex].title;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3800);
-      }
+      if (currentIndex === lockedIndex && prereqMet) showUnlockToast();
     }
   });
 }, { root: songsEl, threshold: [0.6] });
@@ -816,24 +848,61 @@ function playableIndicesExcluding(excludeIdx) {
   return arr;
 }
 
-/* avanza sola a la siguiente canción cuando termina el video actual */
-songsEl.querySelectorAll("video").forEach((video, playedIdx) => {
+function advanceAfter(idx) {
+  let nextIdx;
+  if (shuffleMode) {
+    const candidates = playableIndicesExcluding(idx);
+    if (candidates.length === 0) return;
+    nextIdx = candidates[Math.floor(Math.random() * candidates.length)];
+  } else {
+    nextIdx = idx + 1;
+    if (nextIdx >= trackEls.length) return;
+  }
+  goTo(nextIdx);
+  const nextVideo = trackEls[nextIdx].querySelector("video");
+  if (nextVideo) nextVideo.play().catch(() => {});
+}
+
+/* revela la cancion bloqueada cuando el visitante ya termino de ver todas las demas */
+function unlockLockedTrack() {
+  const track = trackEls[lockedIndex];
+  const song = CONFIG.songs[lockedIndex];
+  const num = String(lockedIndex + 1).padStart(2, "0");
+  track.className = "track";
+  track.innerHTML = `
+    <div class="track-head">
+      <div class="track-num">${num}</div>
+      <div class="track-title">${song.title}</div>
+    </div>
+    <div class="track-media">
+      <video controls playsinline preload="none" poster="${song.poster || ""}">
+        <source src="${song.video}" type="video/mp4">
+      </video>
+    </div>
+    ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
+  `;
+  wireVideo(lockedIndex);
+  showUnlockToast();
+}
+
+/* marca como vista una cancion cuando termina, y avanza a la siguiente */
+function wireVideo(idx) {
+  const video = trackEls[idx].querySelector("video");
+  if (!video) return;
   video.addEventListener("ended", () => {
-    const idx = trackEls.findIndex(t => t.contains(video));
-    let nextIdx;
-    if (shuffleMode) {
-      const candidates = playableIndicesExcluding(idx);
-      if (candidates.length === 0) return;
-      nextIdx = candidates[Math.floor(Math.random() * candidates.length)];
-    } else {
-      nextIdx = idx + 1;
-      if (nextIdx >= trackEls.length) return;
+    if (otherIndices.includes(idx) && !watchedSet.has(idx)) {
+      watchedSet.add(idx);
+      saveWatched(watchedSet);
+      if (!prereqMet && isFullyWatched()) {
+        prereqMet = true;
+        unlockLockedTrack();
+      }
     }
-    goTo(nextIdx);
-    const nextVideo = trackEls[nextIdx].querySelector("video");
-    if (nextVideo) nextVideo.play().catch(() => {});
+    advanceAfter(idx);
   });
-});
+}
+
+trackEls.forEach((t, idx) => wireVideo(idx));
 
 const extrasEl = document.getElementById("extras-container");
 CONFIG.extras.forEach(extra => {
