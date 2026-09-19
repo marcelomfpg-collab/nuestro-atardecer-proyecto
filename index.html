@@ -58,8 +58,8 @@
   /* ---- mensaje de la tortuga ---- */
   .turtle-msg{
     position:fixed;
-    left:50%; bottom:24px;
-    transform:translateX(-50%) translateY(12px);
+    left:20px; bottom:24px;
+    transform:translateY(12px);
     background:linear-gradient(160deg, rgba(20,60,50,.92), rgba(10,30,26,.95));
     border:1px solid rgba(150,255,210,.35);
     color:#eafff2;
@@ -72,10 +72,11 @@
     opacity:0;
     transition:opacity .4s ease, transform .4s ease;
     pointer-events:none;
+    max-width:calc(100vw - 40px);
   }
   .turtle-msg.show{
     opacity:1;
-    transform:translateX(-50%) translateY(0);
+    transform:translateY(0);
   }
 
   /* ---- toast de cancion desbloqueada ---- */
