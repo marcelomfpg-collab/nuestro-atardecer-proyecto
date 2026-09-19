@@ -680,8 +680,9 @@ const CONFIG = {
       note: "",
       video: "media/interludio.mp4",
       poster: "",
-      secretVideo: "",
-      secretPoster: ""
+      secretVideo: "media/a-pesar-de-temblar-asi.mp4",
+      secretPoster: "",
+      secretCaption: "Mi lado más vulnerable, porque puedo ser increíble, pero también tengo miedo."
     },
     {
       icon: "📓",
@@ -873,6 +874,7 @@ CONFIG.extras.forEach(extra => {
               <source src="${extra.secretVideo}" type="video/mp4">
             </video>
           </div>
+          ${extra.secretCaption ? `<p>${extra.secretCaption}</p>` : ""}
         ` : `<p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>`}
       </div>
     `;
