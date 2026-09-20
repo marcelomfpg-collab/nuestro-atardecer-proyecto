@@ -401,9 +401,14 @@
     background:var(--gold);
     transform:scale(1.35);
   }
+  .toggle-row{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:0 0 56px;
+  }
   .play-mode-toggle{
-    display:block;
-    margin:0 auto 56px;
     background:none;
     border:1px solid var(--line);
     color:var(--ink-soft);
@@ -412,8 +417,35 @@
     padding:7px 16px;
     border-radius:999px;
     cursor:pointer;
+    white-space:nowrap;
   }
   .play-mode-toggle:hover{ border-color:var(--gold); color:var(--gold); }
+  .play-mode-toggle.active{ border-color:var(--gold); color:var(--gold); background:rgba(246,198,103,.1); }
+
+  /* ---- burbuja de comentario ---- */
+  .comment-bubble{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%) translateY(12px);
+    background:linear-gradient(160deg, rgba(60,30,50,.92), rgba(30,12,26,.95));
+    border:1px solid rgba(255,170,214,.4);
+    color:#fff0f6;
+    font-family:"Caveat", cursive;
+    font-size:1.3rem;
+    padding:10px 22px;
+    border-radius:999px;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.6);
+    z-index:50;
+    opacity:0;
+    transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+    max-width:calc(100vw - 40px);
+    text-align:center;
+  }
+  .comment-bubble.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
 
   /* ---------- EXTRAS ---------- */
   .extras{
@@ -524,6 +556,7 @@
   <div class="eyebrow script">se desbloqueó</div>
   <div id="unlock-toast-title"></div>
 </div>
+<div class="comment-bubble" id="comment-bubble" aria-hidden="true">🎙️ Marcelo tiene algo que decir...</div>
 
 <div class="hero">
   <div class="wrap">
@@ -553,7 +586,10 @@
     <button class="carousel-arrow next" id="songs-next" aria-label="Canción siguiente">›</button>
   </div>
   <div class="carousel-dots" id="songs-dots"></div>
-  <button class="play-mode-toggle" id="play-mode-toggle" type="button">➡️ En orden</button>
+  <div class="toggle-row">
+    <button class="play-mode-toggle" id="play-mode-toggle" type="button">➡️ En orden</button>
+    <button class="play-mode-toggle" id="commentary-toggle" type="button">🎙️ Comentarios: Off</button>
+  </div>
 
   <div class="section-head reveal">
     <div class="eyebrow script">un poco más</div>
@@ -596,6 +632,21 @@
                                navegador (localStorage), así que solo
                                con recorrer/deslizar el carrusel sin
                                darle play no se desbloquea nada.
+                     comments → opcional. Lista de comentarios tuyos en
+                               audio para el "modo comentarios" (el
+                               botón "🎙️ Comentarios"). Cada uno es:
+                               { time: 12, audio: "media/comentarios/x.mp3", text: "algo chistoso" }
+                               "time" es el segundo del video en el que
+                               se pausa la canción, suena tu audio, y
+                               al terminar sigue reproduciendo sola.
+                               "text" (opcional) se muestra como
+                               subtítulo mientras suena. Solo se
+                               activa si la persona prende el modo
+                               comentarios; si no le pones "comments"
+                               a una canción, simplemente no pasa nada
+                               especial en esa canción. Mándame los
+                               audios con el segundo exacto de cada uno
+                               y yo los agrego aquí.
 
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
@@ -840,6 +891,29 @@ playModeBtn.addEventListener("click", () => {
   playModeBtn.textContent = shuffleMode ? "🔀 Aleatorio" : "➡️ En orden";
 });
 
+let commentaryMode = false;
+const commentaryBtn = document.getElementById("commentary-toggle");
+commentaryBtn.addEventListener("click", () => {
+  commentaryMode = !commentaryMode;
+  commentaryBtn.textContent = commentaryMode ? "🎙️ Comentarios: On" : "🎙️ Comentarios: Off";
+  commentaryBtn.classList.toggle("active", commentaryMode);
+});
+
+/* reproduce un audio de comentario, pausando el video mientras suena */
+function playComment(video, comment) {
+  video.pause();
+  const bubble = document.getElementById("comment-bubble");
+  if (comment.text) bubble.textContent = `🎙️ ${comment.text}`;
+  bubble.classList.add("show");
+  const audio = new Audio(comment.audio);
+  const resume = () => {
+    bubble.classList.remove("show");
+    video.play().catch(() => {});
+  };
+  audio.addEventListener("ended", resume);
+  audio.play().catch(resume);
+}
+
 function playableIndicesExcluding(excludeIdx) {
   const arr = [];
   trackEls.forEach((t, i) => {
@@ -900,6 +974,23 @@ function wireVideo(idx) {
     }
     advanceAfter(idx);
   });
+
+  const comments = CONFIG.songs[idx] && CONFIG.songs[idx].comments;
+  if (comments && comments.length) {
+    const played = new Set();
+    video.addEventListener("play", () => {
+      if (video.currentTime < 0.5) played.clear();
+    });
+    video.addEventListener("timeupdate", () => {
+      if (!commentaryMode) return;
+      comments.forEach((c, ci) => {
+        if (!played.has(ci) && video.currentTime >= c.time) {
+          played.add(ci);
+          playComment(video, c);
+        }
+      });
+    });
+  }
 }
 
 trackEls.forEach((t, idx) => wireVideo(idx));
