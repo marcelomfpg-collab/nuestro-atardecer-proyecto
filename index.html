@@ -388,18 +388,26 @@
   .carousel-dots{
     display:flex;
     justify-content:center;
-    gap:8px;
     margin-bottom:16px;
   }
   .carousel-dot{
+    width:26px; height:26px;
+    padding:0;
+    background:none;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .carousel-dot::after{
+    content:"";
     width:8px; height:8px;
     border-radius:50%;
     background:rgba(255,214,170,.3);
-    border:none; padding:0;
-    cursor:pointer;
     transition: transform .2s, background .2s;
   }
-  .carousel-dot.active{
+  .carousel-dot.active::after{
     background:var(--gold);
     transform:scale(1.35);
   }
@@ -427,8 +435,8 @@
   /* ---- burbuja de comentario ---- */
   .comment-bubble{
     position:fixed;
-    left:50%; bottom:24px;
-    transform:translateX(-50%) translateY(12px);
+    right:20px; bottom:24px;
+    transform:translateY(12px);
     background:linear-gradient(160deg, rgba(60,30,50,.92), rgba(30,12,26,.95));
     border:1px solid rgba(255,170,214,.4);
     color:#fff0f6;
@@ -446,7 +454,7 @@
   }
   .comment-bubble.show{
     opacity:1;
-    transform:translateX(-50%) translateY(0);
+    transform:translateY(0);
   }
 
   /* ---------- EXTRAS ---------- */
