@@ -932,6 +932,19 @@ commentaryBtn.addEventListener("click", () => {
 /* controla el (unico) audio de comentario que puede estar sonando a la vez */
 let activeComment = null;
 
+/* crea el elemento de audio declarando el tipo MIME explicitamente
+   (GitHub Pages sirve los .mp3 como "audio/mp3" en vez del estandar
+   "audio/mpeg", y algunos navegadores como Safari son estrictos con eso) */
+function createCommentAudio(src) {
+  const audio = document.createElement("audio");
+  audio.preload = "auto";
+  const source = document.createElement("source");
+  source.src = src;
+  source.type = "audio/mpeg";
+  audio.appendChild(source);
+  return audio;
+}
+
 function stopActiveComment() {
   if (!activeComment) return;
   const { audio, stop } = activeComment;
@@ -946,7 +959,7 @@ function playStandaloneComment(audioSrc, text) {
   const bubble = document.getElementById("comment-bubble");
   bubble.textContent = text ? `🎙️ ${text}` : "🎙️ Marcelo tiene algo que decir...";
   bubble.classList.add("show");
-  const audio = new Audio(audioSrc);
+  const audio = createCommentAudio(audioSrc);
   const finish = () => {
     activeComment = null;
     bubble.classList.remove("show");
@@ -963,7 +976,7 @@ function playComment(video, comment) {
   const bubble = document.getElementById("comment-bubble");
   bubble.textContent = comment.text ? `🎙️ ${comment.text}` : "🎙️ Marcelo tiene algo que decir...";
   bubble.classList.add("show");
-  const audio = new Audio(comment.audio);
+  const audio = createCommentAudio(comment.audio);
   const finish = () => {
     activeComment = null;
     bubble.classList.remove("show");
