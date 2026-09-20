@@ -657,6 +657,10 @@
                                especial en esa canción. Mándame los
                                audios con el segundo exacto de cada uno
                                y yo los agrego aquí.
+   commentaryIntro → un audio tuyo (fuera de CONFIG.songs, arriba del
+                               todo) que suena apenas la persona prende
+                               el botón "🎙️ Comentarios" (el interruptor
+                               general, no una canción en particular).
 
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
@@ -678,6 +682,7 @@ const CONFIG = {
   subtitle: "una playlist hecha con todo mi cariño",
   message: "Hola Cami, si estás viendo esto es porque llegó el día: tu cumple. Y para esta fecha tan importante para ti te hice este álbum de 9 canciones que demuestran lo mucho que te quiero, aunque la verdad se quedan cortas. Cada una toca un tema alrededor de nosotros y reafirma el cariño que tengo, pero también es un gracias por dejarme estar ahí para ti, es un gracias por haberme encontrado cuando no quería ser encontrado, es un gracias por permitirme quedarme y quererte... Disfrútalo.",
   sign: "— Marcelo",
+  commentaryIntro: "media/comentarios/intro.mp3",
 
   songs: [
     {
@@ -907,13 +912,27 @@ commentaryBtn.addEventListener("click", () => {
   commentaryMode = !commentaryMode;
   commentaryBtn.textContent = commentaryMode ? "🎙️ Comentarios: On" : "🎙️ Comentarios: Off";
   commentaryBtn.classList.toggle("active", commentaryMode);
+  if (commentaryMode && CONFIG.commentaryIntro) {
+    playStandaloneComment(CONFIG.commentaryIntro);
+  }
 });
+
+/* reproduce un audio de comentario suelto, sin pausar ningun video (ej: al activar el modo) */
+function playStandaloneComment(audioSrc, text) {
+  const bubble = document.getElementById("comment-bubble");
+  bubble.textContent = text ? `🎙️ ${text}` : "🎙️ Marcelo tiene algo que decir...";
+  bubble.classList.add("show");
+  const audio = new Audio(audioSrc);
+  const hide = () => bubble.classList.remove("show");
+  audio.addEventListener("ended", hide);
+  audio.play().catch(hide);
+}
 
 /* reproduce un audio de comentario, pausando el video mientras suena */
 function playComment(video, comment) {
   video.pause();
   const bubble = document.getElementById("comment-bubble");
-  if (comment.text) bubble.textContent = `🎙️ ${comment.text}`;
+  bubble.textContent = comment.text ? `🎙️ ${comment.text}` : "🎙️ Marcelo tiene algo que decir...";
   bubble.classList.add("show");
   const audio = new Audio(comment.audio);
   const resume = () => {
