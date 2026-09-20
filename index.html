@@ -689,56 +689,65 @@ const CONFIG = {
       title: "Nerviosismo",
       caption: "Esta primera refleja cómo fue el comienzo de nuestra peculiar historia. Lo sé, fui un idiota, no me lo repitas.",
       video: "media/nerviosismo.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/01-nerviosismo.mp3" }]
     },
     {
       title: "Tortuga",
       caption: "Ese viernes lo valió a mil, hace tiempo que no disfrutaba hablar con alguien.",
       video: "media/tortuga.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/02-tortuga.mp3" }]
     },
     {
       title: "No Se Trata De Eso",
       caption: "Me tardé 4 min en hacer esta, pero me encanta wuaaaaa. ¿De qué trata? Escúchala y descúbrelo.",
       video: "media/no-se-trata-de-eso.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/03-no-se-trata-de-eso.mp3" }]
     },
     {
       title: "Ese Atardecer",
       caption: "La primera, lo sentí, me atreví y la escribí, es para ti Cami... mi atardecer.",
       video: "media/ese-atardecer.mp4",
-      poster: "media/ese-atardecer-poster.jpg"
+      poster: "media/ese-atardecer-poster.jpg",
+      comments: [{ time: 0, audio: "media/comentarios/04-ese-atardecer.mp3" }]
     },
     {
       title: "Te Elijo A Ti",
       caption: "Tendrás que matarme para alejarme de ti, aunque no me gustaría que me mataras, con una orden de alejamiento basta.",
       video: "media/te-elijo-a-ti.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/05-te-elijo-a-ti.mp3" }]
     },
     {
       title: "Canciones",
       caption: "Tú resuenas cuando las escucho, guardo las más bellas para el momento indicado.",
       video: "media/canciones.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/06-canciones.mp3" }]
     },
     {
       title: "Soulmate",
       caption: "No había presupuesto al momento de crearnos, así que nos crearon casi iguales.",
       video: "media/soulmate.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/07-soulmate.mp3" }]
     },
     {
       title: "Todo Lo Posible",
       caption: "Quería una canción con las sensaciones de \"Stop Crying Your Heart Out\" de Oasis. Esa canción la escribió Noel para un buen amigo que pasaba por malos momentos. Creo que las dos, al final, son un recordatorio de que el sol siempre sale. Déjame estar contigo en las noches más oscuras.",
       video: "media/todo-lo-posible.mp4",
-      poster: ""
+      poster: "",
+      comments: [{ time: 0, audio: "media/comentarios/08-todo-lo-posible.mp3" }]
     },
     {
       title: "🤘🏾 🫰🏻",
       caption: "",
       video: "media/secreta.mp4",
       poster: "",
-      locked: true
+      locked: true,
+      comments: [{ time: 0, audio: "media/comentarios/09-secreta.mp3" }]
     }
   ],
 
@@ -1007,7 +1016,9 @@ function wireVideo(idx) {
   const comments = CONFIG.songs[idx] && CONFIG.songs[idx].comments;
   if (comments && comments.length) {
     const played = new Set();
+    let resumingFromComment = false;
     video.addEventListener("play", () => {
+      if (resumingFromComment) { resumingFromComment = false; return; }
       if (video.currentTime < 0.5) played.clear();
     });
     video.addEventListener("timeupdate", () => {
@@ -1015,6 +1026,7 @@ function wireVideo(idx) {
       comments.forEach((c, ci) => {
         if (!played.has(ci) && video.currentTime >= c.time) {
           played.add(ci);
+          resumingFromComment = true;
           playComment(video, c);
         }
       });
