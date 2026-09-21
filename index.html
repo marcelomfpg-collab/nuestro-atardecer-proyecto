@@ -553,69 +553,6 @@
   .extra-card.has-video .extra-media video{ width:100%; height:100%; object-fit:cover; }
   .extra-card.has-video p{ font-family:"Caveat", cursive; font-size:1.15rem; color:#f3d9c4; }
 
-  .unlock-msg{
-    margin-top:12px;
-    padding:12px 14px;
-    border-radius:14px;
-    border:1px solid rgba(255,214,170,.4);
-    background:linear-gradient(160deg, rgba(255,214,170,.12), rgba(255,214,170,.03));
-    text-align:center;
-  }
-  .unlock-msg p{
-    margin:0 0 10px;
-    font-family:"Caveat", cursive;
-    font-size:1.2rem;
-    color:#f3d9c4;
-  }
-  .unlock-yes{
-    background:var(--gold);
-    color:#3a2440;
-    border:none;
-    font-family:inherit;
-    font-weight:600;
-    font-size:.8rem;
-    padding:8px 16px;
-    border-radius:999px;
-    cursor:pointer;
-  }
-  .unlock-yes:hover{ filter:brightness(1.08); }
-  .secret-content{ margin-top:10px; }
-
-  /* ---- modal de pantalla completa para la cancion secreta ---- */
-  .secret-modal{
-    position:fixed; inset:0;
-    background:rgba(5,4,8,.96);
-    z-index:100;
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none;
-    transition:opacity .35s ease;
-    padding:20px;
-  }
-  .secret-modal.show{ opacity:1; pointer-events:auto; }
-  .secret-modal-inner{ max-width:min(92vw, 560px); width:100%; text-align:center; }
-  .secret-modal-inner video{
-    width:100%; border-radius:16px; background:#000;
-    box-shadow:0 20px 50px -12px rgba(0,0,0,.7);
-    max-height:70vh;
-  }
-  .secret-modal-inner p{
-    margin-top:16px;
-    font-family:"Caveat", cursive;
-    font-size:1.3rem;
-    color:#f3d9c4;
-  }
-  .secret-modal-close{
-    position:absolute; top:18px; right:18px;
-    width:40px; height:40px; border-radius:50%;
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.2);
-    color:#fff6ea; font-size:1.4rem; line-height:1;
-    cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .secret-modal-close:hover{ background:rgba(255,255,255,.16); }
-  .secret-empty{ font-size:.8rem; color:var(--ink-soft); margin:0; }
-
   /* ---------- FOOTER ---------- */
   footer{
     text-align:center;
@@ -652,13 +589,6 @@
   <div id="unlock-toast-title"></div>
 </div>
 <div class="comment-bubble" id="comment-bubble" aria-hidden="true">🎙️ Marcelo tiene algo que decir...</div>
-<div class="secret-modal" id="secret-modal" aria-hidden="true">
-  <button class="secret-modal-close" id="secret-modal-close" type="button" aria-label="Cerrar">×</button>
-  <div class="secret-modal-inner">
-    <video id="secret-modal-video" controls playsinline></video>
-    <p id="secret-modal-caption" class="script"></p>
-  </div>
-</div>
 
 <div class="hero">
   <div class="wrap">
@@ -768,18 +698,10 @@
    Para agregar una canción nueva más adelante, avísame (a Claude) y yo
    subo el video y completo el bloque correspondiente en esta lista.
 
-   - extras      → las tarjetas de "Extras". La de "Interlude" tiene un
-                    campo extra "secretVideo": queda oculto y NO se
-                    muestra ningún botón hasta que la persona termine
-                    de ver el video principal de Interlude completo;
-                    justo cuando acaba, aparece un mensaje ("se
-                    desbloqueó una canción secreta, ¿quieres
-                    escucharla?") y al aceptar se abre ese secretVideo
-                    en pantalla completa (con su secretCaption debajo),
-                    para que se sienta como algo especial y no como un
-                    video más chiquito perdido en la tarjeta. Si lo
-                    dejas vacío "" el mensaje igual aparece pero adentro
-                    dice "todavía no hay nada aquí".
+   - extras      → las tarjetas de "Extras". Cuando el video principal
+                    de "Interlude" termina de verse, eso desbloquea
+                    (una sola vez, queda guardado) cualquier canción del
+                    CONFIG.songs que tenga "lockedUntilInterlude: true".
    ===================================================================== */
 
 const CONFIG = {
@@ -856,9 +778,8 @@ const CONFIG = {
     },
     {
       title: "Would You Stay With Me?",
-      caption: "",
-      audio: "media/cancion-10.mp3",
-      video: "",
+      caption: "Mi lado más vulnerable, porque puedo ser increíble, pero también tengo miedo.",
+      video: "media/would-you-stay-with-me.mp4",
       poster: "",
       lockedUntilInterlude: true
     }
@@ -870,10 +791,7 @@ const CONFIG = {
       title: "Interlude",
       note: "",
       video: "media/interludio.mp4",
-      poster: "",
-      secretVideo: "media/would-you-stay-with-me.mp4",
-      secretPoster: "",
-      secretCaption: "Mi lado más vulnerable, porque puedo ser increíble, pero también tengo miedo."
+      poster: ""
     },
     {
       icon: "📓",
@@ -910,7 +828,7 @@ const trackEls = [];
 const lockedIndex = CONFIG.songs.findIndex(s => s.locked);
 const otherIndices = CONFIG.songs
   .map((s, idx) => idx)
-  .filter(idx => idx !== lockedIndex && !!CONFIG.songs[idx].video);
+  .filter(idx => idx !== lockedIndex && !CONFIG.songs[idx].lockedUntilInterlude && !!CONFIG.songs[idx].video);
 
 const WATCHED_KEY = "gracias-watched-songs";
 const CELEBRATED_KEY = "gracias-unlock-celebrated";
@@ -1056,33 +974,6 @@ function showUnlockToast() {
   setTimeout(() => toast.classList.remove("show"), 3800);
 }
 
-/* abre la cancion secreta en pantalla completa */
-function openSecretModal(src, poster, caption) {
-  const modal = document.getElementById("secret-modal");
-  const video = document.getElementById("secret-modal-video");
-  video.src = src;
-  if (poster) video.poster = poster;
-  document.getElementById("secret-modal-caption").textContent = caption || "";
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden", "false");
-  video.play().catch(() => {});
-}
-function closeSecretModal() {
-  const modal = document.getElementById("secret-modal");
-  const video = document.getElementById("secret-modal-video");
-  video.pause();
-  video.removeAttribute("src");
-  video.load();
-  modal.classList.remove("show");
-  modal.setAttribute("aria-hidden", "true");
-}
-document.getElementById("secret-modal-close").addEventListener("click", closeSecretModal);
-document.getElementById("secret-modal").addEventListener("click", (e) => {
-  if (e.target.id === "secret-modal") closeSecretModal();
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSecretModal();
-});
 
 const songObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -1328,38 +1219,10 @@ CONFIG.extras.forEach(extra => {
     `;
   }
 
-  if ("secretVideo" in extra) {
-    const secretWrap = document.createElement("div");
-    secretWrap.className = "secret-wrap";
-    secretWrap.innerHTML = `
-      <div class="unlock-msg" hidden>
-        <p>🎵 Se desbloqueó una canción secreta. ¿Quieres escucharla?</p>
-        <button class="unlock-yes" type="button">Sí, escuchar</button>
-      </div>
-      ${!extra.secretVideo ? `
-        <div class="secret-content" hidden>
-          <p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>
-        </div>
-      ` : ""}
-    `;
-    card.appendChild(secretWrap);
-
-    const unlockMsg = secretWrap.querySelector(".unlock-msg");
-    const unlockYes = secretWrap.querySelector(".unlock-yes");
-
-    unlockYes.addEventListener("click", () => {
-      unlockMsg.setAttribute("hidden", "");
-      if (extra.secretVideo) {
-        openSecretModal(extra.secretVideo, extra.secretPoster, extra.secretCaption);
-      } else {
-        secretWrap.querySelector(".secret-content").removeAttribute("hidden");
-      }
-    });
-
+  if (extra.video) {
     const mainVideo = card.querySelector(".extra-media video");
     if (mainVideo) {
       mainVideo.addEventListener("ended", () => {
-        unlockMsg.removeAttribute("hidden");
         if (!hasWatchedInterlude()) {
           markInterludeWatched();
           revealInterludeLockedSongs();
