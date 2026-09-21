@@ -538,10 +538,40 @@
   }
   .unlock-yes:hover{ filter:brightness(1.08); }
   .secret-content{ margin-top:10px; }
-  .secret-content .extra-media{
-    border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9;
+
+  /* ---- modal de pantalla completa para la cancion secreta ---- */
+  .secret-modal{
+    position:fixed; inset:0;
+    background:rgba(5,4,8,.96);
+    z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease;
+    padding:20px;
   }
-  .secret-content .extra-media video{ width:100%; height:100%; object-fit:cover; }
+  .secret-modal.show{ opacity:1; pointer-events:auto; }
+  .secret-modal-inner{ max-width:min(92vw, 560px); width:100%; text-align:center; }
+  .secret-modal-inner video{
+    width:100%; border-radius:16px; background:#000;
+    box-shadow:0 20px 50px -12px rgba(0,0,0,.7);
+    max-height:70vh;
+  }
+  .secret-modal-inner p{
+    margin-top:16px;
+    font-family:"Caveat", cursive;
+    font-size:1.3rem;
+    color:#f3d9c4;
+  }
+  .secret-modal-close{
+    position:absolute; top:18px; right:18px;
+    width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);
+    color:#fff6ea; font-size:1.4rem; line-height:1;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .secret-modal-close:hover{ background:rgba(255,255,255,.16); }
   .secret-empty{ font-size:.8rem; color:var(--ink-soft); margin:0; }
 
   /* ---------- FOOTER ---------- */
@@ -567,6 +597,13 @@
   <div id="unlock-toast-title"></div>
 </div>
 <div class="comment-bubble" id="comment-bubble" aria-hidden="true">🎙️ Marcelo tiene algo que decir...</div>
+<div class="secret-modal" id="secret-modal" aria-hidden="true">
+  <button class="secret-modal-close" id="secret-modal-close" type="button" aria-label="Cerrar">×</button>
+  <div class="secret-modal-inner">
+    <video id="secret-modal-video" controls playsinline></video>
+    <p id="secret-modal-caption" class="script"></p>
+  </div>
+</div>
 
 <div class="hero">
   <div class="wrap">
@@ -671,10 +708,12 @@
                     de ver el video principal de Interlude completo;
                     justo cuando acaba, aparece un mensaje ("se
                     desbloqueó una canción secreta, ¿quieres
-                    escucharla?") y al aceptar se revela y reproduce
-                    ese secretVideo. Si lo dejas vacío "" el mensaje
-                    igual aparece pero adentro dice "todavía no hay
-                    nada aquí".
+                    escucharla?") y al aceptar se abre ese secretVideo
+                    en pantalla completa (con su secretCaption debajo),
+                    para que se sienta como algo especial y no como un
+                    video más chiquito perdido en la tarjeta. Si lo
+                    dejas vacío "" el mensaje igual aparece pero adentro
+                    dice "todavía no hay nada aquí".
    ===================================================================== */
 
 const CONFIG = {
@@ -758,7 +797,7 @@ const CONFIG = {
       note: "",
       video: "media/interludio.mp4",
       poster: "",
-      secretVideo: "media/a-pesar-de-temblar-asi.mp4",
+      secretVideo: "media/would-you-stay-with-me.mp4",
       secretPoster: "",
       secretCaption: "Mi lado más vulnerable, porque puedo ser increíble, pero también tengo miedo."
     },
@@ -894,6 +933,34 @@ function showUnlockToast() {
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 3800);
 }
+
+/* abre la cancion secreta en pantalla completa */
+function openSecretModal(src, poster, caption) {
+  const modal = document.getElementById("secret-modal");
+  const video = document.getElementById("secret-modal-video");
+  video.src = src;
+  if (poster) video.poster = poster;
+  document.getElementById("secret-modal-caption").textContent = caption || "";
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+  video.play().catch(() => {});
+}
+function closeSecretModal() {
+  const modal = document.getElementById("secret-modal");
+  const video = document.getElementById("secret-modal-video");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+document.getElementById("secret-modal-close").addEventListener("click", closeSecretModal);
+document.getElementById("secret-modal").addEventListener("click", (e) => {
+  if (e.target.id === "secret-modal") closeSecretModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSecretModal();
+});
 
 const songObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -1107,28 +1174,24 @@ CONFIG.extras.forEach(extra => {
         <p>🎵 Se desbloqueó una canción secreta. ¿Quieres escucharla?</p>
         <button class="unlock-yes" type="button">Sí, escuchar</button>
       </div>
-      <div class="secret-content" hidden>
-        ${extra.secretVideo ? `
-          <div class="extra-media">
-            <video controls playsinline preload="none" poster="${extra.secretPoster || ""}">
-              <source src="${extra.secretVideo}" type="video/mp4">
-            </video>
-          </div>
-          ${extra.secretCaption ? `<p>${extra.secretCaption}</p>` : ""}
-        ` : `<p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>`}
-      </div>
+      ${!extra.secretVideo ? `
+        <div class="secret-content" hidden>
+          <p class="secret-empty">todavía no hay nada aquí... vuelve pronto</p>
+        </div>
+      ` : ""}
     `;
     card.appendChild(secretWrap);
 
     const unlockMsg = secretWrap.querySelector(".unlock-msg");
     const unlockYes = secretWrap.querySelector(".unlock-yes");
-    const content = secretWrap.querySelector(".secret-content");
 
     unlockYes.addEventListener("click", () => {
       unlockMsg.setAttribute("hidden", "");
-      content.removeAttribute("hidden");
-      const secretVideoEl = content.querySelector("video");
-      if (secretVideoEl) secretVideoEl.play().catch(() => {});
+      if (extra.secretVideo) {
+        openSecretModal(extra.secretVideo, extra.secretPoster, extra.secretCaption);
+      } else {
+        secretWrap.querySelector(".secret-content").removeAttribute("hidden");
+      }
     });
 
     const mainVideo = card.querySelector(".extra-media video");
