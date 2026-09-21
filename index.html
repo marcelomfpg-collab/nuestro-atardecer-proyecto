@@ -821,6 +821,20 @@ document.getElementById("page-message").textContent = CONFIG.message;
 document.querySelector(".letter .sign").textContent = CONFIG.sign;
 document.title = CONFIG.pageTitle;
 
+/* le informa al sistema operativo que se esta reproduciendo (titulo, etc.)
+   para que aparezca en los controles de bloqueo y ayude a que el audio
+   siga sonando si se apaga la pantalla o se cambia de app */
+function setMediaSession(title) {
+  if (!("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || CONFIG.pageTitle,
+      artist: "Marcelo",
+      album: CONFIG.pageTitle
+    });
+  } catch (e) {}
+}
+
 const songsEl = document.getElementById("songs-container");
 const dotsEl = document.getElementById("songs-dots");
 const trackEls = [];
@@ -1153,8 +1167,13 @@ function wireVideo(idx) {
   const video = trackEls[idx].querySelector("video");
   if (!video) return;
 
-  /* si empieza a sonar esta cancion, corta cualquier comentario que estuviera sonando */
-  video.addEventListener("play", () => stopActiveComment());
+  /* si empieza a sonar esta cancion, corta cualquier comentario que estuviera sonando
+     y avisa al sistema operativo que titulo esta sonando (ayuda a que siga sonando
+     el audio si se bloquea la pantalla o se cambia de app, sobre todo en Android) */
+  video.addEventListener("play", () => {
+    stopActiveComment();
+    setMediaSession(CONFIG.songs[idx] ? CONFIG.songs[idx].title : "");
+  });
 
   video.addEventListener("ended", () => {
     if (otherIndices.includes(idx) && !watchedSet.has(idx)) {
@@ -1226,6 +1245,7 @@ CONFIG.extras.forEach(extra => {
       });
       let turtleShown = false;
       mainVideo.addEventListener("play", () => {
+        setMediaSession(extra.title);
         if (turtleShown) return;
         turtleShown = true;
         const turtleMsg = document.getElementById("turtle-msg");
