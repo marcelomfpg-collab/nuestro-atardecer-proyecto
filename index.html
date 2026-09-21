@@ -755,6 +755,11 @@
                                especial en esa canción. Mándame los
                                audios con el segundo exacto de cada uno
                                y yo los agrego aquí.
+                     lockedUntilInterlude → true en una canción para que
+                               se quede bloqueada ("???") hasta que la
+                               persona termine de ver el video principal
+                               del Interlude (en Extras). Se guarda en
+                               su navegador igual que las demás.
    commentaryIntro → un audio tuyo (fuera de CONFIG.songs, arriba del
                                todo) que suena apenas la persona prende
                                el botón "🎙️ Comentarios" (el interruptor
@@ -854,7 +859,8 @@ const CONFIG = {
       caption: "",
       audio: "media/cancion-10.mp3",
       video: "",
-      poster: ""
+      poster: "",
+      lockedUntilInterlude: true
     }
   ],
 
@@ -922,6 +928,15 @@ function isFullyWatched() {
 }
 let prereqMet = isFullyWatched();
 
+const INTERLUDE_WATCHED_KEY = "gracias-interlude-watched";
+function hasWatchedInterlude() {
+  try { return localStorage.getItem(INTERLUDE_WATCHED_KEY) === "1"; } catch (e) { return false; }
+}
+function markInterludeWatched() {
+  try { localStorage.setItem(INTERLUDE_WATCHED_KEY, "1"); } catch (e) {}
+}
+const interludeUnlocked = hasWatchedInterlude();
+
 CONFIG.songs.forEach((song, i) => {
   const num = String(i + 1).padStart(2, "0");
   const track = document.createElement("div");
@@ -939,6 +954,18 @@ CONFIG.songs.forEach((song, i) => {
         <span class="lock-icon">🔒</span>
         <span>se desbloquea al completar las demás canciones</span>
         <span class="lock-progress">${doneCount}/${totalOthers} completas</span>
+      </div>
+    `;
+  } else if (song.lockedUntilInterlude && !interludeUnlocked) {
+    track.className = "track locked";
+    track.innerHTML = `
+      <div class="track-head">
+        <div class="track-num">${num}</div>
+        <div class="track-title">???</div>
+      </div>
+      <div class="track-media">
+        <span class="lock-icon">🔒</span>
+        <span>se desbloquea escuchando el Interlude (en Extras)</span>
       </div>
     `;
   } else if (song.video) {
@@ -1183,6 +1210,46 @@ function unlockLockedTrack() {
   showUnlockToast();
 }
 
+/* revela cualquier cancion marcada con lockedUntilInterlude cuando ya se vio el Interlude */
+function revealInterludeLockedSongs() {
+  CONFIG.songs.forEach((song, idx) => {
+    if (!song.lockedUntilInterlude) return;
+    const track = trackEls[idx];
+    if (!track || !track.classList.contains("locked")) return;
+    const num = String(idx + 1).padStart(2, "0");
+    track.className = "track";
+    if (song.video) {
+      track.innerHTML = `
+        <div class="track-head">
+          <div class="track-num">${num}</div>
+          <div class="track-title">${song.title}</div>
+        </div>
+        <div class="track-media">
+          <video controls playsinline preload="none" poster="${song.poster || ""}">
+            <source src="${song.video}" type="video/mp4">
+          </video>
+        </div>
+        ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
+      `;
+    } else if (song.audio) {
+      track.innerHTML = `
+        <div class="track-head">
+          <div class="track-num">${num}</div>
+          <div class="track-title">${song.title}</div>
+        </div>
+        <div class="track-media track-audio">
+          <span class="note-icon">🎙️</span>
+          <audio controls preload="none">
+            <source src="${song.audio}" type="audio/mpeg">
+          </audio>
+        </div>
+        ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
+      `;
+    }
+    wireVideo(idx);
+  });
+}
+
 /* marca como vista una cancion cuando termina, y avanza a la siguiente */
 function wireVideo(idx) {
   const video = trackEls[idx].querySelector("video");
@@ -1282,6 +1349,10 @@ CONFIG.extras.forEach(extra => {
     if (mainVideo) {
       mainVideo.addEventListener("ended", () => {
         unlockMsg.removeAttribute("hidden");
+        if (!hasWatchedInterlude()) {
+          markInterludeWatched();
+          revealInterludeLockedSongs();
+        }
       });
       let turtleShown = false;
       mainVideo.addEventListener("play", () => {
