@@ -844,12 +844,6 @@ function loadWatched() {
 function saveWatched(set) {
   try { localStorage.setItem(WATCHED_KEY, JSON.stringify([...set])); } catch (e) {}
 }
-function hasCelebrated() {
-  try { return localStorage.getItem(CELEBRATED_KEY) === "1"; } catch (e) { return false; }
-}
-function markCelebrated() {
-  try { localStorage.setItem(CELEBRATED_KEY, "1"); } catch (e) {}
-}
 
 const watchedSet = loadWatched();
 function isFullyWatched() {
@@ -965,11 +959,12 @@ function updateDots() {
 }
 updateDots();
 
-function showUnlockToast() {
-  if (hasCelebrated()) return;
-  markCelebrated();
+function showUnlockToast(title, celebratedKey) {
+  const key = celebratedKey || CELEBRATED_KEY;
+  try { if (localStorage.getItem(key) === "1") return; } catch (e) {}
+  try { localStorage.setItem(key, "1"); } catch (e) {}
   const toast = document.getElementById("unlock-toast");
-  document.getElementById("unlock-toast-title").textContent = CONFIG.songs[lockedIndex].title;
+  document.getElementById("unlock-toast-title").textContent = title;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 3800);
 }
@@ -980,7 +975,7 @@ const songObserver = new IntersectionObserver((entries) => {
     if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
       currentIndex = trackEls.indexOf(entry.target);
       updateDots();
-      if (currentIndex === lockedIndex && prereqMet) showUnlockToast();
+      if (currentIndex === lockedIndex && prereqMet) showUnlockToast(CONFIG.songs[lockedIndex].title);
     }
   });
 }, { root: songsEl, threshold: [0.6] });
@@ -1109,7 +1104,7 @@ function unlockLockedTrack() {
     ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
   `;
   wireVideo(lockedIndex);
-  showUnlockToast();
+  showUnlockToast(song.title);
 }
 
 /* revela cualquier cancion marcada con lockedUntilInterlude cuando ya se vio el Interlude */
@@ -1149,6 +1144,7 @@ function revealInterludeLockedSongs() {
       `;
     }
     wireVideo(idx);
+    showUnlockToast(song.title, `gracias-celebrated-${idx}`);
   });
 }
 
