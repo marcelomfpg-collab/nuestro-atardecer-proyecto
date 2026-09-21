@@ -30,6 +30,39 @@
   img,video{ max-width:100%; display:block; }
   [hidden]{ display:none!important; }
 
+  /* ---------- PANTALLA DE ESPERA ---------- */
+  #lock-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:32px 20px;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255,154,90,.25), transparent 60%),
+      linear-gradient(180deg, #2c1a3b 0%, #1b0f28 55%, #120a1c 100%);
+  }
+  .lock-inner{ max-width:420px; }
+  .lock-sun{
+    width:min(40vw,160px); height:min(40vw,160px);
+    margin:0 auto 24px;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffe3ad, var(--sun) 45%, var(--coral) 100%);
+    box-shadow: 0 0 60px 10px rgba(255,154,90,.45);
+  }
+  .lock-eyebrow{ font-size:1.4rem; color:var(--gold); margin:0 0 4px; }
+  .lock-title{
+    font-size:clamp(1.6rem,6vw,2.2rem);
+    color:#fff6ea;
+    margin-bottom:14px;
+  }
+  .lock-text{
+    color:#f3d9c4;
+    font-size:.95rem;
+    margin-bottom:22px;
+  }
+  #lock-audio{ width:100%; max-width:320px; margin:0 auto; }
+
   .wrap{
     max-width:720px;
     margin:0 auto;
@@ -310,6 +343,15 @@
     aspect-ratio:16/9;
   }
   .track-media video{ width:100%; height:100%; object-fit:cover; }
+  .track-media.track-audio{
+    aspect-ratio:auto;
+    background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px;
+    padding:32px 16px;
+  }
+  .track-media.track-audio .note-icon{ font-size:2rem; }
+  .track-media.track-audio audio{ width:100%; max-width:280px; }
   .track-caption{
     margin:14px 4px 2px;
     font-family:"Caveat", cursive;
@@ -585,6 +627,19 @@
   footer .script{ font-size:1.2rem; color:var(--gold); display:block; margin-bottom:6px; }
 </style>
 
+<div id="lock-screen">
+  <div class="lock-inner">
+    <div class="lock-sun"></div>
+    <p class="lock-eyebrow script">todavía no...</p>
+    <h1 class="lock-title">Espera un poquito más</h1>
+    <p class="lock-text">Esto se abre el 21 de septiembre. Mientras tanto, escucha esto:</p>
+    <audio id="lock-audio" controls preload="none">
+      <source src="media/cancion-10.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+</div>
+
+<div id="app-content" hidden>
 <div class="night-drive" aria-hidden="true">
   <video id="bg-video" autoplay muted loop playsinline preload="auto">
     <source src="media/night-drive-bg.mp4" type="video/mp4">
@@ -650,6 +705,7 @@
     hecho con <span class="heart">♡</span> para ti
   </footer>
 </div>
+</div><!-- /app-content -->
 
 <script>
 /* =====================================================================
@@ -670,6 +726,11 @@
                      video   → el archivo de video (déjalo vacío "" si
                                todavía no tienes esa canción lista;
                                se mostrará como "muy pronto")
+                     audio   → alternativa a "video": si la canción es
+                               solo un audio (sin video), pon la ruta
+                               acá en vez de en "video" y se muestra
+                               con un reproductor de audio normal,
+                               reproducible las veces que quieras.
                      poster  → imagen que se ve antes de dar play
                      locked  → true solo en la última canción: se
                                mantiene bloqueada ("???") hasta que la
@@ -787,6 +848,13 @@ const CONFIG = {
       poster: "",
       locked: true,
       comments: [{ time: 0, audio: "media/comentarios/01-nerviosismo.mp3" }]
+    },
+    {
+      title: "Would You Stay With Me?",
+      caption: "",
+      audio: "media/cancion-10.mp3",
+      video: "",
+      poster: ""
     }
   ],
 
@@ -811,6 +879,7 @@ const CONFIG = {
 };
 
 /* ------------------------- render (no tocar) ------------------------- */
+function initApp() {
 document.getElementById("page-title").textContent = CONFIG.pageTitle;
 document.getElementById("page-subtitle").textContent = CONFIG.subtitle;
 document.getElementById("page-message").textContent = CONFIG.message;
@@ -883,6 +952,21 @@ CONFIG.songs.forEach((song, i) => {
         <video controls playsinline preload="none" poster="${song.poster || ""}">
           <source src="${song.video}" type="video/mp4">
         </video>
+      </div>
+      ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
+    `;
+  } else if (song.audio) {
+    track.className = "track";
+    track.innerHTML = `
+      <div class="track-head">
+        <div class="track-num">${num}</div>
+        <div class="track-title">${song.title}</div>
+      </div>
+      <div class="track-media track-audio">
+        <span class="note-icon">🎙️</span>
+        <audio controls preload="none">
+          <source src="${song.audio}" type="audio/mpeg">
+        </audio>
       </div>
       ${song.caption ? `<p class="track-caption">${song.caption}</p>` : ""}
     `;
@@ -1242,4 +1326,16 @@ function checkReveal() {
     else video.play().catch(() => {});
   });
 })();
+} /* fin de initApp */
+
+/* ------------------------- pantalla de espera ------------------------- */
+/* El sitio completo queda bloqueado hasta esta fecha/hora (horario de Peru, UTC-5).
+   Despues de esa hora, initApp() se ejecuta normalmente y ya no hace falta tocar nada. */
+const UNLOCK_AT = new Date("2026-09-21T05:55:00-05:00").getTime();
+
+if (Date.now() >= UNLOCK_AT) {
+  document.getElementById("lock-screen").hidden = true;
+  document.getElementById("app-content").hidden = false;
+  initApp();
+}
 </script>
