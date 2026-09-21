@@ -61,7 +61,7 @@
     font-size:.95rem;
     margin-bottom:22px;
   }
-  #lock-audio{ width:100%; max-width:320px; margin:0 auto; }
+  #lock-audio{ display:none; }
 
   .wrap{
     max-width:720px;
@@ -632,8 +632,8 @@
     <div class="lock-sun"></div>
     <p class="lock-eyebrow script">todavía no...</p>
     <h1 class="lock-title">Espera un poquito más</h1>
-    <p class="lock-text">Esto se abre el 21 de septiembre. Mientras tanto, escucha esto:</p>
-    <audio id="lock-audio" controls preload="none">
+    <p class="lock-text">Esto se abre el 21 de septiembre.</p>
+    <audio id="lock-audio" preload="auto" playsinline>
       <source src="media/cancion-10.mp3" type="audio/mpeg">
     </audio>
   </div>
@@ -1330,12 +1330,24 @@ function checkReveal() {
 
 /* ------------------------- pantalla de espera ------------------------- */
 /* El sitio completo queda bloqueado hasta esta fecha/hora (horario de Peru, UTC-5).
-   Despues de esa hora, initApp() se ejecuta normalmente y ya no hace falta tocar nada. */
+   Despues de esa hora, initApp() se ejecuta normalmente y ya no hace falta tocar nada.
+   El link con ?preview=marcelo al final salta el bloqueo (para que Marcelo pueda ver
+   todo el contenido antes, mientras que el link normal le sigue saliendo bloqueado
+   a cualquier otra persona hasta la hora indicada). */
 const UNLOCK_AT = new Date("2026-09-21T05:55:00-05:00").getTime();
+const isPreview = new URLSearchParams(location.search).get("preview") === "marcelo";
 
-if (Date.now() >= UNLOCK_AT) {
+if (isPreview || Date.now() >= UNLOCK_AT) {
   document.getElementById("lock-screen").hidden = true;
   document.getElementById("app-content").hidden = false;
   initApp();
+} else {
+  /* intenta sonar solo; si el navegador bloquea el autoplay con sonido,
+     arranca apenas la persona toque/haga clic en cualquier parte */
+  const lockAudio = document.getElementById("lock-audio");
+  const tryPlayLockAudio = () => lockAudio.play().catch(() => {});
+  tryPlayLockAudio();
+  document.addEventListener("click", tryPlayLockAudio, { once: true });
+  document.addEventListener("touchstart", tryPlayLockAudio, { once: true });
 }
 </script>
