@@ -886,6 +886,17 @@ const CONFIG = {
 
 /* ------------------------- render (no tocar) ------------------------- */
 function initApp() {
+/* con ?reset=1 en el link se borra el progreso guardado en ESTE navegador
+   (que canciones quedaron "vistas", si ya se desbloqueo la 9, si ya se vio
+   el Interlude, etc.) para poder probar el sitio como una visita nueva */
+if (new URLSearchParams(location.search).get("reset") === "1") {
+  try {
+    localStorage.removeItem("gracias-watched-songs");
+    localStorage.removeItem("gracias-unlock-celebrated");
+    localStorage.removeItem("gracias-interlude-watched");
+  } catch (e) {}
+}
+
 document.getElementById("page-title").textContent = CONFIG.pageTitle;
 document.getElementById("page-subtitle").textContent = CONFIG.subtitle;
 document.getElementById("page-message").textContent = CONFIG.message;
@@ -965,7 +976,7 @@ CONFIG.songs.forEach((song, i) => {
       </div>
       <div class="track-media">
         <span class="lock-icon">🔒</span>
-        <span>se desbloquea escuchando el Interlude (en Extras)</span>
+        <span>Esta canción está bloqueada.</span>
       </div>
     `;
   } else if (song.video) {
